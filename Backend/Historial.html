@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Historial de Solicitudes</title>
+  <link rel="stylesheet" href="../Frontend/css/Estiloshistorial.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+<header>
+  <span>Sistema de Días Libres - Historial de Solicitudes</span>
+  <button onclick="window.location.href='../index.html'">Regresar</button>
+</header>
+
+<div class="container">
+<aside class="sidebar">
+  <h3>Filtros</h3>
+  <div class="filter-section" style="margin-bottom:15px;">
+    <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--dark);">Buscar empleado:</label>
+    <input type="text" id="employeeSearch" placeholder="Buscar por nombre..." style="width:100%; padding:8px; border-radius:6px; border:1px solid #ddd; box-sizing:border-box;">
+  </div>
+  <div class="filter-section" style="margin-bottom:15px;">
+    <label style="display:block; margin-bottom:5px; font-weight:bold; color:var(--dark);">Departamento:</label>
+    <select id="departmentFilter" style="width:100%; padding:8px; border-radius:6px; border:1px solid #ddd; box-sizing:border-box; background:#fff; cursor:pointer;">
+      <option value="">Todos los departamentos</option>
+      <!-- cargado dinámicamente -->
+    </select>
+  </div>
+  <h3 style="margin-top:20px; margin-bottom:10px;">Empleados</h3>
+  <table class="employee-table" id="employeeListTable">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Departamento</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- cargado dinámicamente -->
+    </tbody>
+  </table>
+</aside>
+  <section class="main-content">
+    <div class="content-header">
+      <h3>Historial de Solicitudes</h3>
+      <div class="filters">
+        <select id="statusFilter" class="filter-select">
+          <option value="">Todos los estados</option>
+          <option value="pendiente">Pendientes</option>
+          <option value="aprobada">Aprobadas</option>
+          <option value="rechazada">Rechazadas</option>
+        </select>
+        <select id="sortFilter" class="filter-select">
+          <option value="newest">Más recientes</option>
+          <option value="oldest">Más antiguas</option>
+          <option value="date_asc">Fecha solicitada (ascendente)</option>
+          <option value="date_desc">Fecha solicitada (descendente)</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="requests-grid" id="requestsGrid">
+      <!-- Cards generadas dinámicamente -->
+    </div>
+    
+    <div class="empty-state" id="emptyState" style="display: none;">
+      <i class="fas fa-inbox"></i>
+      <p>No se encontraron solicitudes</p>
+    </div>
+  </section>
+</div>
+
+<!-- Modal confirmación -->
+<div class="modal" id="confirmModal">
+  <div class="modal-content" id="confirmModalContent">
+    <div class="modal-icon" id="modalIcon"></div>
+    <p id="modalMessage">¿Está seguro?</p>
+    <div class="modal-buttons">
+      <button class="confirm-btn" id="modalConfirm">Sí</button>
+      <button class="cancel-btn" id="modalCancel">No</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Detalles de Solicitud -->
+<div class="modal" id="detailsModal">
+  <div class="modal-content preview-modal-content">
+    <div class="modal-header">
+      <h3>Vista Previa de Solicitud</h3>
+      <button class="close-modal-btn" id="closeDetailsModal">&times;</button>
+    </div>
+    <div class="preview-content-wrapper" id="detailsContent">
+      <!-- Contenido generado dinámicamente -->
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" style="display: none;"></div>
+
+<script>
+const modal = document.getElementById("confirmModal");
+const modalMessage = document.getElementById("modalMessage");
+const modalConfirm = document.getElementById("modalConfirm");
+const modalCancel = document.getElementById("modalCancel");
+const toast = document.getElementById("toast");
+
+let pendingAction = null; // { id, newStatus, card }
+
+function openToast(message, type = 'info') {
+  toast.textContent = message;
+  toast.className = `toast show ${type}`;
+  setTimeout(() => {
+    toast.classList.remove("show");
+    // Asegurar que se oculte completamente después de la animación
+    setTimeout(() => {
+      if (!toast.classList.contains('show')) {
+        toast.style.display = 'none';
+      }
+    }, 300);
+  }, 4000);
+}
+
+function openConfirm(reqId, newStatus, card) {
+  const request = allRequests.find(r => r.id == reqId);
+  if (!request) {
+    openToast('Solicitud no encontrada', 'error');
+    return;
+  }
+  
+  if (request.status !== 'pendiente') {
+    openToast(`La solicitud ya ha sido ${capitalize(request.status)}`, 'warning');
+    return;
+  }
+  pendingAction = { id: reqId, newStatus, card };
+  
+  const modalContent = document.getElementById('confirmModalContent');
+  const modalIcon = document.getElementById('modalIcon');
+  
+  // Cambiar diseño según la acción
+  if (newStatus === 'aprobada') {
+    // Estilo para aceptar
+    modalContent.classList.remove('modal-reject');
+    modalContent.classList.add('modal-approve');
+    modalIcon.innerHTML = '<i class="fas fa-check-circle"></i>';
+    modalMessage.textContent = '¿Está seguro de querer Aceptar la solicitud?';
+    modalMessage.style.color = '#1b5e20';
+  } else {
+    // Estilo para rechazar
+    modalContent.classList.remove('modal-approve');
+    modalContent.classList.add('modal-reject');
+    modalIcon.innerHTML = '<i class="fas fa-times-circle"></i>';
+    modalMessage.textContent = '¿Está seguro de querer Rechazar la solicitud?';
+    modalMessage.style.color = '#c62828';
+  }
+  
+  modal.style.display = 'flex';
+}
+
+async function fetchRequests() {
+  try {
+    // Si se pasó un employeeId como argumento opcional, úsalo
+    const url = fetchRequests.employeeId ? `../server/php-api/requests.php?employee_id=${encodeURIComponent(fetchRequests.employeeId)}` : '../server/php-api/requests.php';
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Error al obtener solicitudes');
+    const data = await res.json();
+    renderRequests(data);
+  } catch (err) {
+    openToast('No se pudieron cargar solicitudes: ' + err.message, 'error');
+  }
+}
+
+// Cargar departamentos en el combobox
+async function loadDepartments() {
+  try {
+    const res = await fetch('../server/php-api/employees.php?departments=1');
+    if (!res.ok) throw new Error('Error al obtener departamentos');
+    const departments = await res.json();
+    const select = document.getElementById('departmentFilter');
+    // Limpiar opciones excepto "Todos los departamentos"
+    select.innerHTML = '<option value="">Todos los departamentos</option>';
+    departments.forEach(dept => {
+      const option = document.createElement('option');
+      option.value = dept.id;
+      option.textContent = dept.name;
+      select.appendChild(option);
+    });
+  } catch (err) {
+    console.error('Error al cargar departamentos:', err);
+  }
+}
+
+// Renderizar lista de empleados
+function renderEmployeeList(employees) {
+  const tbody = document.querySelector('#employeeListTable tbody');
+  // Limpiar solo las filas de empleados (mantener "Mostrar todos")
+  const allRow = tbody.querySelector('tr.show-all-row, tr:first-child');
+  tbody.innerHTML = '';
+  if (allRow) {
+    // Asegurar que la fila existente tenga las clases y contenido correctos
+    allRow.className = 'show-all-row';
+    const cell = allRow.querySelector('td');
+    if (cell) {
+      cell.className = 'show-all-cell';
+      cell.innerHTML = 'Mostrar todos';
+    }
+    // Reasignar el event listener si es necesario
+    const existingHandler = allRow.getAttribute('data-handler-attached');
+    if (!existingHandler) {
+      allRow.addEventListener('click', () => {
+        document.querySelectorAll('#employeeListTable tr').forEach(r => r.classList.remove('selected'));
+        allRow.classList.add('selected');
+        fetchRequests.employeeId = null;
+        fetchRequests();
+      });
+      allRow.setAttribute('data-handler-attached', 'true');
+    }
+    tbody.appendChild(allRow);
+  } else {
+    // Si no existe, crear "Mostrar todos"
+    const newAllRow = document.createElement('tr');
+    newAllRow.className = 'show-all-row';
+      newAllRow.innerHTML = `<td colspan="2" class="show-all-cell">Mostrar todos</td>`;
+    if (!fetchRequests.employeeId) {
+      newAllRow.classList.add('selected');
+    }
+    newAllRow.addEventListener('click', () => {
+      document.querySelectorAll('#employeeListTable tr').forEach(r => r.classList.remove('selected'));
+      newAllRow.classList.add('selected');
+      fetchRequests.employeeId = null;
+      fetchRequests();
+    });
+    newAllRow.setAttribute('data-handler-attached', 'true');
+    tbody.appendChild(newAllRow);
+  }
+
+  employees.forEach(emp => {
+    const tr = document.createElement('tr');
+    tr.dataset.id = emp.id;
+    tr.dataset.departmentId = emp.department_id || '';
+    tr.innerHTML = `<td>${emp.name}</td><td>${emp.department || 'Sin departamento'}</td>`;
+    
+    // Si este empleado está seleccionado, marcar la fila (comparar como strings para evitar problemas de tipo)
+    if (fetchRequests.employeeId && String(fetchRequests.employeeId) === String(emp.id)) {
+      tr.classList.add('selected');
+    }
+    
+    tr.addEventListener('click', () => {
+      // marcar selección
+      document.querySelectorAll('#employeeListTable tr').forEach(r => r.classList.remove('selected'));
+      tr.classList.add('selected');
+      // solicitar sólo las solicitudes de ese empleado
+      fetchRequests.employeeId = emp.id;
+      fetchRequests();
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+// Aplicar filtros de empleados (búsqueda y departamento)
+function applyEmployeeFilters() {
+  if (!window.allEmployees) return;
+  
+  const searchQuery = document.getElementById('employeeSearch')?.value.toLowerCase().trim() || '';
+  const departmentId = document.getElementById('departmentFilter')?.value || '';
+  
+  let filtered = [...window.allEmployees];
+  
+  // Filtrar por departamento
+  if (departmentId) {
+    filtered = filtered.filter(emp => emp.department_id == departmentId);
+  }
+  
+  // Filtrar por búsqueda de nombre
+  if (searchQuery) {
+    filtered = filtered.filter(emp => 
+      emp.name.toLowerCase().includes(searchQuery)
+    );
+  }
+  
+  renderEmployeeList(filtered);
+}
+
+// Cargar empleados en el sidebar y conectar el filtrado
+async function fetchEmployees() {
+  try {
+    const res = await fetch('../server/php-api/employees.php');
+    if (!res.ok) throw new Error('Error al obtener empleados');
+    const employees = await res.json();
+    
+    // Almacenar empleados para filtrado
+    window.allEmployees = employees;
+    
+    // Cargar departamentos en el combobox
+    await loadDepartments();
+    
+    // Renderizar lista inicial
+    renderEmployeeList(employees);
+
+    // Attach search handler
+    const searchInput = document.getElementById('employeeSearch');
+    if (searchInput) {
+      // Remover listener anterior si existe
+      searchInput.removeEventListener('input', applyEmployeeFilters);
+      searchInput.addEventListener('input', applyEmployeeFilters);
+    }
+    
+    // Attach department filter handler
+    const departmentFilter = document.getElementById('departmentFilter');
+    if (departmentFilter) {
+      // Remover listener anterior si existe
+      departmentFilter.removeEventListener('change', applyEmployeeFilters);
+      departmentFilter.addEventListener('change', applyEmployeeFilters);
+    }
+  } catch (err) {
+    openToast('No se pudieron cargar empleados: ' + err.message, 'error');
+  }
+}
+
+let allRequests = []; // Almacenar todas las solicitudes para filtrado
+
+function renderRequests(requests) {
+  allRequests = requests; // Guardar todas las solicitudes
+  applyFilters();
+}
+
+function applyFilters() {
+  const statusFilter = document.getElementById('statusFilter').value;
+  const sortFilter = document.getElementById('sortFilter').value;
+  
+  let filtered = [...allRequests];
+  
+  // Filtrar por estado
+  if (statusFilter) {
+    filtered = filtered.filter(r => r.status === statusFilter);
+  }
+  
+  // Ordenar
+  filtered.sort((a, b) => {
+    switch(sortFilter) {
+      case 'oldest':
+        return new Date(a.created_at) - new Date(b.created_at);
+      case 'newest':
+        return new Date(b.created_at) - new Date(a.created_at);
+      case 'date_asc':
+        // Parsear fechas manualmente para evitar problemas de zona horaria
+        const [aYear, aMonth, aDay] = a.date_requested.split('-');
+        const [bYear, bMonth, bDay] = b.date_requested.split('-');
+        const aDate = new Date(parseInt(aYear), parseInt(aMonth) - 1, parseInt(aDay));
+        const bDate = new Date(parseInt(bYear), parseInt(bMonth) - 1, parseInt(bDay));
+        return aDate - bDate;
+      case 'date_desc':
+        // Parsear fechas manualmente para evitar problemas de zona horaria
+        const [cYear, cMonth, cDay] = a.date_requested.split('-');
+        const [dYear, dMonth, dDay] = b.date_requested.split('-');
+        const cDate = new Date(parseInt(cYear), parseInt(cMonth) - 1, parseInt(cDay));
+        const dDate = new Date(parseInt(dYear), parseInt(dMonth) - 1, parseInt(dDay));
+        return dDate - cDate;
+      default:
+        return new Date(b.created_at) - new Date(a.created_at);
+    }
+  });
+  
+  const grid = document.getElementById('requestsGrid');
+  const emptyState = document.getElementById('emptyState');
+  
+  if (filtered.length === 0) {
+    grid.style.display = 'none';
+    emptyState.style.display = 'block';
+    return;
+  }
+  
+  grid.style.display = 'grid';
+  emptyState.style.display = 'none';
+  grid.innerHTML = '';
+  
+  filtered.forEach(r => {
+    const card = document.createElement('div');
+    const estadoClass = r.status === 'aprobada' ? 'aprobada' : (r.status === 'rechazada' ? 'rechazada' : 'pendiente');
+    card.className = `request-card ${estadoClass}`;
+    card.dataset.id = r.id;
+    
+    // Parsear la fecha manualmente para evitar problemas de zona horaria
+    const [yearStr, monthStr, dayStr] = r.date_requested.split('-');
+    const requestDate = new Date(parseInt(yearStr), parseInt(monthStr) - 1, parseInt(dayStr));
+    const day = requestDate.getDate();
+    const month = requestDate.toLocaleString('es-ES', { month: 'long' });
+    const year = requestDate.getFullYear();
+    const dayOfWeek = requestDate.toLocaleString('es-ES', { weekday: 'long' });
+    const createdDate = new Date(r.created_at);
+    const createdFormatted = formatDateTime(createdDate);
+    
+    // Construir HTML de acciones
+    let actionsHtml = '';
+    if (r.status === 'pendiente') {
+      actionsHtml = `
+        <div class="card-actions">
+          <button class="accept-btn card-btn">Aceptar</button>
+          <button class="reject-btn card-btn">Rechazar</button>
+        </div>
+      `;
+    } else {
+      const statusText = r.status === 'aprobada' ? '✓ Aprobada' : '✗ Rechazada';
+      actionsHtml = `<div class="card-status-badge ${estadoClass}">${statusText}</div>`;
+    }
+    
+    card.innerHTML = `
+      <div class="card-header">
+        <div class="card-employee-info">
+          <h4 class="card-employee-name">${escapeHtml(r.employee_name ?? '')}</h4>
+          <span class="card-department">${escapeHtml(r.department ?? '')}</span>
+        </div>
+        <div class="card-status ${estadoClass}">
+          <span class="status-text">${capitalize(r.status)}</span>
+          <span class="status-icon"></span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-detail">
+          <i class="fas fa-calendar-alt"></i>
+          <div>
+            <span class="detail-label">Fecha solicitada:</span>
+            <span class="detail-value">${day} de ${month} de ${year}</span>
+            <span class="detail-sub">${capitalize(dayOfWeek)}</span>
+          </div>
+        </div>
+        <div class="card-detail">
+          <i class="fas fa-clock"></i>
+          <div>
+            <span class="detail-label">Días solicitados:</span>
+            <span class="detail-value">${r.days} día(s)</span>
+          </div>
+        </div>
+        <div class="card-detail">
+          <i class="fas fa-calendar-check"></i>
+          <div>
+            <span class="detail-label">Fecha de solicitud:</span>
+            <span class="detail-value">${createdFormatted}</span>
+          </div>
+        </div>
+        ${r.notes ? `
+          <div class="card-detail notes">
+            <i class="fas fa-sticky-note"></i>
+            <div>
+              <span class="detail-label">Observaciones:</span>
+              <span class="detail-value">${escapeHtml(r.notes)}</span>
+            </div>
+          </div>
+        ` : ''}
+      </div>
+      <div class="card-footer">
+        ${actionsHtml}
+        <button class="details-btn" data-request-id="${r.id}">
+          <i class="fas fa-eye"></i> Ver Detalles Completos
+        </button>
+      </div>
+    `;
+    
+    grid.appendChild(card);
+  });
+  
+  // Attach handlers
+  document.querySelectorAll('.accept-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const card = this.closest('.request-card');
+      const id = card.dataset.id;
+      if (this.disabled) return;
+      openConfirm(id, 'aprobada', card);
+    });
+  });
+  
+  document.querySelectorAll('.reject-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const card = this.closest('.request-card');
+      const id = card.dataset.id;
+      if (this.disabled) return;
+      openConfirm(id, 'rechazada', card);
+    });
+  });
+  
+  document.querySelectorAll('.details-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const requestId = parseInt(this.dataset.requestId);
+      showRequestDetails(requestId);
+    });
+  });
+}
+
+function showRequestDetails(requestId) {
+  const request = allRequests.find(r => r.id === requestId);
+  if (!request) {
+    openToast('Solicitud no encontrada', 'error');
+    return;
+  }
+  
+  // Parsear la fecha manualmente para evitar problemas de zona horaria
+  const [yearStr, monthStr, dayStr] = request.date_requested.split('-');
+  const requestDate = new Date(parseInt(yearStr), parseInt(monthStr) - 1, parseInt(dayStr));
+  const day = requestDate.getDate();
+  const month = requestDate.toLocaleString('es-ES', { month: 'long' });
+  const year = requestDate.getFullYear();
+  const monthNumber = requestDate.getMonth() + 1;
+  const dayOfWeek = requestDate.toLocaleString('es-ES', { weekday: 'long' });
+  
+  const today = new Date();
+  const diffTime = Math.abs(requestDate - today);
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  const currentDate = new Date();
+  const currentDay = currentDate.getDate();
+  const currentMonth = currentDate.toLocaleString('es-ES', { month: 'long' });
+  const currentYear = currentDate.getFullYear();
+  
+  const createdDate = new Date(request.created_at);
+  const createdFormatted = formatDateTime(createdDate);
+  
+  const currentYearLastTwo = currentYear.toString().slice(-2);
+  const yearLastTwoReq = year.toString().slice(-2);
+  
+  // Obtener días usados del año del empleado
+  let daysUsedYear = 0;
+  if (window.allEmployees) {
+    const employee = window.allEmployees.find(emp => emp.id === request.employee_id);
+    if (employee) {
+      daysUsedYear = employee.days_used_year || employee.initial_days_year || 0;
+    }
+  }
+  
+  const detailsContent = document.getElementById('detailsContent');
+  detailsContent.innerHTML = `
+    <div class="preview-document ipn-format">
+      <div class="institutional-header">
+        <div class="institutional-logo">
+          <img src="../Frontend/imagenes/ipn_logo.png" alt="Logo IPN">
+        </div>
+        <div class="institutional-text">
+          <h1>INSTITUTO POLITÉCNICO NACIONAL</h1>
+          <h2>CIIDIR-SINALOA</h2>
+          <p>CENTRO INTERDISCIPLINARIO DE INVESTIGACIÓN<br>PARA EL DESARROLLO INTEGRAL REGIONAL</p>
+          <div class="ipn-title">
+            SOLICITUD DE PERMISO ECONOMICO
+          </div>
+        </div>
+      </div>
+      
+      <div class="ipn-content-box">
+        <div class="ipn-request-text">
+          <p class="ipn-date-right">GUASAVE, SINALOA A <strong>${currentDay}</strong> DE <strong>${currentDate.getMonth() + 1}</strong> DEL 20<strong>${currentYearLastTwo}</strong></p>
+          <p class="ipn-text-left ipn-line-extend">EL C. <strong>${escapeHtml((request.employee_name ?? '').toUpperCase())}</strong></p>
+          <p class="ipn-text-left ipn-line-extend">SOLICITA PERMISO POR <strong>${request.days}</strong> DÍA(S) <strong>${day}</strong></p>
+          <p class="ipn-text-left" id="detailsDateDetail">DE <strong>${month.toUpperCase()}</strong> DEL 20<strong>${yearLastTwoReq}</strong></p>
+        </div>
+        
+        <div class="ipn-signature-area">
+          <div class="ipn-signature-center">
+            <div class="ipn-signature-line-firma"></div>
+            <div class="ipn-signature-label-center">FIRMA</div>
+          </div>
+          
+          <div class="ipn-received-dept">
+            <div class="ipn-received-label">RECIBIO</div>
+            <div class="ipn-dept-line-container">
+              <div class="ipn-signature-line-dept"></div>
+              <div class="ipn-dept-days-row">
+                <div class="ipn-dept-label-container">
+                  <span class="ipn-signature-label-dept">JEFE DE DEPARTAMENTO</span>
+                </div>
+                <span class="ipn-days-inline-right">
+                  <span class="days-label-inline">NÚMERO DE DÍAS GOZADOS:</span>
+                  <div class="days-box-inline">${daysUsedYear}</div>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="details-meta">
+      <div class="meta-item">
+        <span class="meta-label">Estado:</span>
+        <span class="meta-value status-${request.status}">${capitalize(request.status)}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Fecha de creación:</span>
+        <span class="meta-value">${createdFormatted}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Anticipación:</span>
+        <span class="meta-value">${diffDays} días</span>
+      </div>
+    </div>
+    
+    <div class="preview-actions">
+      <button class="btn-primary" id="generatePDFBtnHistorial">
+        <i class="fas fa-print"></i> Generar PDF
+      </button>
+    </div>
+  `;
+  
+  document.getElementById('detailsModal').style.display = 'flex';
+}
+
+function formatDateTime(date) {
+  if (!date) return '';
+  try {
+    const dt = new Date(date);
+    if (isNaN(dt)) return '';
+    const day = String(dt.getDate()).padStart(2, '0');
+    const month = String(dt.getMonth() + 1).padStart(2, '0');
+    const year = dt.getFullYear();
+    const hours = String(dt.getHours()).padStart(2, '0');
+    const minutes = String(dt.getMinutes()).padStart(2, '0');
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
+  } catch (e) {
+    return '';
+  }
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>\"']/g, function(s) {
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[s];
+  });
+}
+
+function formatDate(d) {
+  if (!d) return '';
+  // Expecting YYYY-MM-DD
+  try {
+    const dt = new Date(d);
+    if (isNaN(dt)) return d;
+    const day = String(dt.getDate()).padStart(2, '0');
+    const month = String(dt.getMonth() + 1).padStart(2, '0');
+    const year = dt.getFullYear();
+    return `${day}/${month}/${year}`;
+  } catch (e) {
+    return d;
+  }
+}
+
+function capitalize(s) {
+  if (!s) return '';
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+// Modal confirm actions - VERSIÓN CORREGIDA
+modalConfirm.addEventListener('click', async function() {
+  if (!pendingAction) return;
+  const { id, newStatus, card } = pendingAction;
+  
+  // Deshabilitar botones temporalmente para evitar doble clic
+  if (card) {
+    const acceptBtn = card.querySelector('.accept-btn');
+    const rejectBtn = card.querySelector('.reject-btn');
+    if (acceptBtn) acceptBtn.disabled = true;
+    if (rejectBtn) rejectBtn.disabled = true;
+  }
+  
+  try {
+    // CORRECCIÓN: Quitamos el ID de la URL y lo metemos en el body
+    const res = await fetch('../server/php-api/requests.php', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+          id: id,          // <--- ¡AQUÍ ES LA CLAVE! Agregamos el ID al JSON
+          status: newStatus 
+      })
+    });
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Error ${res.status}: ${errorText}`);
+    }
+    
+    const json = await res.json();
+    
+    // ACTUALIZACIÓN INMEDIATA DE LA INTERFAZ
+    // 1. Actualizar en allRequests
+    const requestIndex = allRequests.findIndex(r => r.id == id);
+    if (requestIndex !== -1) {
+      allRequests[requestIndex].status = newStatus;
+      
+      // 2. Actualizar visualmente la tarjeta seleccionada
+      if (card) {
+        // Actualizar el estado visual en la tarjeta
+        const statusElement = card.querySelector('.card-status');
+        const statusText = card.querySelector('.status-text');
+        const actionsContainer = card.querySelector('.card-actions');
+        
+        if (statusElement && statusText) {
+          // Cambiar clase de estado
+          statusElement.className = `card-status ${newStatus}`;
+          statusText.textContent = capitalize(newStatus);
+          
+          // Actualizar icono de estado
+          const statusIcon = statusElement.querySelector('.status-icon');
+          if (statusIcon) {
+            statusIcon.className = 'status-icon';
+          }
+        }
+        
+        // Reemplazar botones por badge de estado
+        if (actionsContainer) {
+          const statusText = newStatus === 'aprobada' ? '✓ Aprobada' : '✗ Rechazada';
+          actionsContainer.innerHTML = `<div class="card-status-badge ${newStatus}">${statusText}</div>`;
+        }
+        
+        // También actualizar en el footer si existe
+        const cardFooter = card.querySelector('.card-footer');
+        if (cardFooter && cardFooter.querySelector('.card-actions')) {
+          const newStatusText = newStatus === 'aprobada' ? '✓ Aprobada' : '✗ Rechazada';
+          cardFooter.querySelector('.card-actions').innerHTML = 
+            `<div class="card-status-badge ${newStatus}">${newStatusText}</div>`;
+        }
+      }
+    }
+    
+    // 3. También aplicar filtros para reordenar si es necesario
+    applyFilters();
+    
+    // 4. Mostrar mensaje de éxito
+    openToast('Estado actualizado correctamente', 'success');
+    
+  } catch (err) {
+    console.error('Error al actualizar:', err);
+    openToast('No se pudo actualizar: ' + err.message, 'error');
+    
+    // Rehabilitar botones si hay error
+    if (card) {
+      const acceptBtn = card.querySelector('.accept-btn');
+      const rejectBtn = card.querySelector('.reject-btn');
+      if (acceptBtn) acceptBtn.disabled = false;
+      if (rejectBtn) rejectBtn.disabled = false;
+    }
+  } finally {
+    // Cerrar modal y limpiar acción pendiente
+    modal.style.display = 'none';
+    pendingAction = null;
+  }
+});
+
+modalCancel.addEventListener('click', function() {
+  modal.style.display = 'none';
+  pendingAction = null;
+});
+
+window.addEventListener('click', function(e) {
+  if (e.target === modal) {
+    modal.style.display = 'none';
+    pendingAction = null;
+  }
+});
+
+// Cerrar modal de detalles
+document.getElementById('closeDetailsModal').addEventListener('click', function() {
+  document.getElementById('detailsModal').style.display = 'none';
+});
+
+window.addEventListener('click', function(e) {
+  const detailsModal = document.getElementById('detailsModal');
+  if (e.target === detailsModal) {
+    detailsModal.style.display = 'none';
+  }
+});
+
+// Filtros
+document.getElementById('statusFilter').addEventListener('change', applyFilters);
+document.getElementById('sortFilter').addEventListener('change', applyFilters);
+
+// Generar PDF con jsPDF para el historial (se agrega dinámicamente cuando se abre el modal)
+let pdfBtnHandler = null;
+
+// Modificar showRequestDetails para agregar el handler del botón PDF
+const originalShowRequestDetails = showRequestDetails;
+showRequestDetails = function(requestId) {
+  originalShowRequestDetails(requestId);
+  
+  // Remover handler anterior si existe
+  if (pdfBtnHandler) {
+    document.getElementById('generatePDFBtnHistorial').removeEventListener('click', pdfBtnHandler);
+  }
+  
+  // Agregar nuevo handler
+  setTimeout(() => {
+    const btn = document.getElementById('generatePDFBtnHistorial');
+    if (btn) {
+      pdfBtnHandler = async function() {
+        const previewDocument = document.querySelector('#detailsModal .preview-document');
+        if (!previewDocument) return;
+
+        // Mostrar indicador de carga
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando PDF...';
+        btn.disabled = true;
+
+        try {
+          // Primero, agregar estilos para deshabilitar el ::after antes de clonar
+          const tempStyle = document.createElement('style');
+          tempStyle.id = 'temp-pdf-override';
+          tempStyle.textContent = `
+            .preview-document .ipn-line-extend strong::after {
+              display: none !important;
+              content: '' !important;
+              border: none !important;
+              border-bottom: none !important;
+            }
+          `;
+          document.head.appendChild(tempStyle);
+          
+          // Esperar un momento para que los estilos se apliquen
+          await new Promise(resolve => setTimeout(resolve, 50));
+          
+          // Usar html2canvas para capturar el contenido - CÓDIGO EXACTO DE INDEX.HTML
+          const canvas = await html2canvas(previewDocument, {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff',
+            width: previewDocument.scrollWidth,
+            height: previewDocument.scrollHeight,
+            letterRendering: true,
+            allowTaint: false,
+            removeContainer: false,
+            onclone: function(clonedDoc) {
+              // Asegurar que los estilos se apliquen correctamente en el clon
+              const clonedElement = clonedDoc.querySelector('.preview-document');
+              if (clonedElement) {
+                clonedElement.style.transform = 'none';
+                clonedElement.style.position = 'relative';
+              }
+              // Forzar que los estilos de subrayado se apliquen correctamente (excepto en .ipn-line-extend)
+              const strongElements = clonedDoc.querySelectorAll('.ipn-content-box strong');
+              strongElements.forEach(el => {
+                // Solo aplicar subrayado si no está dentro de .ipn-line-extend
+                if (!el.closest('.ipn-line-extend')) {
+                  el.style.textDecoration = 'underline';
+                  el.style.textUnderlineOffset = '3px';
+                  el.style.textDecorationThickness = '1px';
+                }
+              });
+              // Eliminar completamente el ::after agregando una clase especial y estilos globales
+              // Usar !important y especificidad máxima para asegurar que se aplique
+              const style = clonedDoc.createElement('style');
+              style.id = 'pdf-override-style';
+              style.textContent = `
+                .preview-document .ipn-line-extend strong::after,
+                .ipn-line-extend strong::after,
+                .no-after::after,
+                .preview-document .ipn-content-box .ipn-line-extend strong::after {
+                  display: none !important;
+                  content: '' !important;
+                  visibility: hidden !important;
+                  opacity: 0 !important;
+                  width: 0 !important;
+                  height: 0 !important;
+                  border: none !important;
+                  border-bottom: none !important;
+                  transform: none !important;
+                  position: absolute !important;
+                  left: -9999px !important;
+                }
+                .preview-document .ipn-line-extend strong,
+                .ipn-line-extend strong {
+                  position: relative !important;
+                }
+              `;
+              // Insertar al final del head para máxima prioridad
+              clonedDoc.head.appendChild(style);
+              
+              // Forzar que los contenedores de línea extendida se muestren correctamente
+              const lineExtends = clonedDoc.querySelectorAll('.ipn-line-extend');
+              lineExtends.forEach(el => {
+                el.style.display = 'inline-block';
+                el.style.position = 'relative';
+                el.style.width = '100%';
+                el.style.overflow = 'hidden';
+                // Asegurar que el texto no se corte
+                el.style.whiteSpace = 'nowrap';
+                // Crear elementos reales para el subrayado en lugar del ::after
+                const strongEls = el.querySelectorAll('strong');
+                strongEls.forEach(strong => {
+                  // Agregar clase para deshabilitar ::after
+                  strong.classList.add('no-after');
+                  strong.style.position = 'relative';
+                  strong.style.textDecoration = 'none';
+                  strong.style.display = 'inline-block';
+                  // Forzar que no tenga ::after con estilos inline
+                  strong.setAttribute('data-no-after', 'true');
+                  // Eliminar cualquier subrayado existente que pueda haber sido creado antes
+                  const existingUnderline = strong.querySelector('.pdf-underline');
+                  if (existingUnderline) {
+                    existingUnderline.remove();
+                  }
+                  // Crear el elemento de subrayado real
+                  const underline = clonedDoc.createElement('span');
+                  underline.className = 'pdf-underline';
+                  // Usar el mismo estilo que el ::after original pero con z-index más alto para que quede encima
+                  underline.style.cssText = 'position: absolute; left: 0; bottom: 0; width: 2000px; height: 0; border-bottom: 1px solid #000; transform: translateY(-1px); z-index: 1; pointer-events: none; background: transparent;';
+                  strong.appendChild(underline);
+                });
+              });
+            }
+          });
+
+          // Crear PDF en formato A5 horizontal (210mm x 148mm)
+          const { jsPDF } = window.jspdf;
+          const pdf = new jsPDF({
+            orientation: 'landscape',
+            unit: 'mm',
+            format: 'a5',
+            compress: true
+          });
+
+          // Usar JPEG con compresión para reducir el tamaño del archivo
+          const imgData = canvas.toDataURL('image/jpeg', 0.85);
+          const imgWidth = 210; // Ancho A5 horizontal en mm
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+          // Calcular si necesita múltiples páginas
+          const pageHeight = 148; // Alto A5 horizontal en mm
+          let heightLeft = imgHeight;
+          let position = 0;
+
+          // Agregar primera página
+          pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+
+          // Agregar páginas adicionales si es necesario
+          while (heightLeft > 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+          }
+
+          // Descargar el PDF
+          pdf.save('solicitud-permiso-economico.pdf');
+          
+          // Limpiar el estilo temporal
+          const tempStyleEl = document.getElementById('temp-pdf-override');
+          if (tempStyleEl) {
+            tempStyleEl.remove();
+          }
+        } catch (error) {
+          console.error('Error al generar PDF:', error);
+          openToast('Error al generar el PDF. Por favor, intenta de nuevo.', 'error');
+          // Limpiar el estilo temporal en caso de error
+          const tempStyleEl = document.getElementById('temp-pdf-override');
+          if (tempStyleEl) {
+            tempStyleEl.remove();
+          }
+        } finally {
+          // Restaurar botón
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+      };
+      
+      btn.addEventListener('click', pdfBtnHandler);
+    }
+  }, 100);
+};
+
+// Leer parámetro employeeId de la URL al cargar la página
+function getUrlParameter(name) {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(name);
+}
+
+// Inicializar
+const urlEmployeeId = getUrlParameter('employeeId');
+if (urlEmployeeId) {
+  // Establecer el employeeId antes de cargar empleados y solicitudes
+  fetchRequests.employeeId = urlEmployeeId;
+}
+
+fetchEmployees().then(() => {
+  // Si hay un employeeId en la URL, asegurarse de que esté seleccionado en la lista
+  if (urlEmployeeId) {
+    // Esperar un momento para que la lista se renderice
+    setTimeout(() => {
+      const employeeRow = document.querySelector(`#employeeListTable tr[data-id="${urlEmployeeId}"]`);
+      if (employeeRow) {
+        // Seleccionar la fila del empleado
+        document.querySelectorAll('#employeeListTable tr').forEach(r => r.classList.remove('selected'));
+        employeeRow.classList.add('selected');
+      }
+    }, 100);
+  }
+  fetchRequests();
+});
+</script>
+</body>
+</html>

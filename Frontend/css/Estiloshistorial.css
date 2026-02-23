@@ -1,0 +1,1917 @@
+:root {
+    --primary: #611232;       /* Header y botones principales */
+    --primary-hover: #7c3350; /* Hover sobre header/button */
+    --secondary: #8E3B5C;     /* Botones secundarios y acentos */
+    --accent: #F08080;        /* Alertas o detalles */
+    --light: #f4f6f9;         /* Fondo general */
+    --dark: #2C1B25;          /* Textos importantes */
+    --success: #28a745;       /* Aprobado / verde */
+    --success-hover: #218838;
+    --warning: #FFB74D;       /* Advertencias */
+    --danger: #dc3545;        /* Rechazado / rojo */
+    --danger-hover: #c82333;
+    --gray: #7D7D7D;          /* Textos secundarios */
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: var(--light);
+    color: var(--dark);
+}
+
+header {
+    background: var(--primary);
+    color: #fff;
+    padding: 15px;
+    font-size: 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header button {
+    background: #fff;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--primary);
+    transition: all 0.3s;
+}
+
+header button:hover {
+    background: var(--primary-hover);
+    color: #fff;
+}
+
+.container {
+    display: flex;
+    padding: 20px;
+    gap: 20px;
+}
+
+.sidebar {
+    width: 25%;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 15px;
+}
+
+.sidebar h3 {
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: var(--primary);
+}
+
+/* Tabla de empleados estilo solicitudes */
+.employee-table {
+    width: 100%;
+    border-collapse: separate; /* Necesario para border-radius */
+    border-spacing: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    background: #fff;
+    font-size: 14px;
+}
+
+/* Encabezado */
+.employee-table th {
+    background: #611232;
+    color: #fff;
+    font-weight: bold;
+    padding: 10px;
+    text-align: left;
+}
+
+/* Celdas */
+.employee-table td {
+    padding: 10px;
+    border-top: 1px solid #eee;
+    color: var(--dark);
+}
+
+/* Filas alternas */
+.employee-table tr:nth-child(even) td {
+    background: #faf7f9;
+}
+
+/* Hover */
+.employee-table tr:hover td {
+    background: #dda4c0;
+    transition: background 0.2s ease;
+}
+
+/* Fila seleccionada */
+.employee-table tr.selected td {
+    background: #c97ba3 !important;
+    color: #fff;
+    font-weight: bold;
+}
+
+.employee-table tr.selected:hover td {
+    background: #b86a92 !important;
+}
+
+/* Bordes redondeados */
+.employee-table th:first-child {
+    border-top-left-radius: 12px;
+}
+.employee-table th:last-child {
+    border-top-right-radius: 12px;
+}
+.employee-table tr:last-child td:first-child {
+    border-bottom-left-radius: 12px;
+}
+.employee-table tr:last-child td:last-child {
+    border-bottom-right-radius: 12px;
+}
+
+/* Estilo especial para la fila "Mostrar todos" */
+.employee-table .show-all-row {
+    background: #d8d8d8;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-top: 2px solid #ccc;
+}
+
+.employee-table .show-all-row:hover {
+    background: #cccccc;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.employee-table .show-all-row.selected {
+    background: #c97ba3 !important;
+    color: #fff;
+}
+
+.employee-table .show-all-row.selected:hover {
+    background: #b86a92 !important;
+}
+
+.employee-table .show-all-cell {
+    color: #333 !important;
+    font-weight: 600 !important;
+    text-align: center !important;
+    padding: 12px 10px !important;
+    font-size: 14px !important;
+    border-top: none !important;
+}
+
+.employee-table .show-all-row.selected .show-all-cell {
+    color: #fff !important;
+}
+
+.filter-section {
+    margin-bottom: 15px;
+}
+
+.filter-section label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: var(--dark);
+    font-size: 14px;
+}
+
+#departmentFilter {
+    width: 100%;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    box-sizing: border-box;
+    background: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+#departmentFilter:hover {
+    border-color: var(--primary);
+}
+
+#departmentFilter:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(97, 18, 50, 0.1);
+}
+
+
+.main-content {
+    flex: 1;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 20px;
+}
+
+.main-content h3 {
+    margin-bottom: 15px;
+    font-size: 16px;
+    color: var(--primary);
+}
+
+/* Tablas con bordes redondeados y colores armónicos */
+table {
+    width: 100%;
+    border-collapse: separate;   /* Necesario para border-radius */
+    border-spacing: 0;
+    border-radius: 12px;         /* Bordes redondeados */
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    background: #fff;
+}
+
+/* Encabezados */
+table th {
+    background: var(--primary);
+    color: #fff;
+    font-weight: bold;
+    padding: 10px;
+    text-align: left;
+    font-size: 14px;
+}
+
+/* Celdas */
+table td {
+    padding: 10px;
+    border-top: 1px solid #eee;
+    font-size: 14px;
+    color: var(--dark);
+}
+
+/* Filas alternas */
+table tr:nth-child(even) td {
+    background: #faf7f9;
+}
+
+/* Hover elegante */
+table tr:hover td {
+    background: #f0e6eb;
+    transition: background 0.2s ease;
+}
+
+/* Bordes redondeados específicos */
+table th:first-child {
+    border-top-left-radius: 12px;
+}
+table th:last-child {
+    border-top-right-radius: 12px;
+}
+table tr:last-child td:first-child {
+    border-bottom-left-radius: 12px;
+}
+table tr:last-child td:last-child {
+    border-bottom-right-radius: 12px;
+}
+
+
+/* la palomilla y la cruz*/
+.estado {
+    padding-right: 44px;
+    white-space: nowrap;
+    position: relative;
+}
+
+.estado .estado-icon {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    border: 2px solid #bbb;
+    border-radius: 3px;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+.estado .estado-icon::before,
+.estado .estado-icon::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform-origin: center center;
+    box-sizing: border-box;
+}
+
+.estado.aprobada .estado-icon {
+    border-color: var(--success);
+}
+
+.estado.aprobada .estado-icon::before { display: none; }
+.estado.aprobada .estado-icon::after {
+    width: 6px; height: 12px;
+    border: solid var(--success);
+    border-width: 0 3px 3px 0;
+    transform: translate(-50%, -55%) rotate(45deg);
+}
+
+.estado.rechazada .estado-icon {
+    border-color: var(--danger);
+}
+
+.estado.rechazada .estado-icon::before,
+.estado.rechazada .estado-icon::after {
+    width: 12px; height: 2px;
+    background: var(--danger);
+}
+
+.estado.rechazada .estado-icon::before { transform: translate(-50%, -50%) rotate(45deg); }
+.estado.rechazada .estado-icon::after { transform: translate(-50%, -50%) rotate(-45deg); }
+
+/* Botones */
+.accept-btn {
+    background: var(--success);
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 6px;
+}
+
+.accept-btn:hover { background: var(--success-hover); }
+
+.reject-btn {
+    background: var(--danger);
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.reject-btn:hover { background: var(--danger-hover); }
+
+/* Estado visual para botones deshabilitados (no interactivos) */
+.accept-btn[disabled], .reject-btn[disabled], .confirm-btn[disabled], .cancel-btn[disabled] {
+    background: #d0d0d0 !important;
+    color: #6b6b6b !important;
+    cursor: default !important;
+    opacity: 0.7 !important;
+    box-shadow: none !important;
+}
+
+/* Tonificar la fila completa si la solicitud no está pendiente */
+table tr td .estado.aprobada, table tr td .estado.rechazada {
+    opacity: 0.95;
+}
+
+/* Opcional: hacer que la fila parezca menos prominente cuando no es editable */
+table tr td .estado.aprobada ~ * , table tr td .estado.rechazada ~ * {
+    opacity: 0.9;
+}
+
+/* Alternativamente, atenuar toda la fila cuando ambas acciones están deshabilitadas */
+/* Atenuado por fila: clase aplicada por JS cuando la fila no es editable */
+.row-disabled {
+    opacity: 0.85;
+    background: #fafafa;
+}
+
+/* Estilos por estado para filas no editables */
+.status-aprobada {
+    background: linear-gradient(90deg, #e9f3ff 0%, #f6fbff 100%); /* azul muy suave */
+    color: #003a6b; /* texto más oscuro azulado */
+}
+
+.status-rechazada {
+    background: linear-gradient(90deg, #f3f3f4 0%, #fbfbfb 100%); /* gris suave */
+    color: #6b6b6b; /* texto gris */
+}
+
+/* Asegurar que botones deshabilitados se vean consistentes sobre fondos coloreados */
+.status-aprobada .accept-btn[disabled], .status-aprobada .reject-btn[disabled],
+.status-rechazada .accept-btn[disabled], .status-rechazada .reject-btn[disabled] {
+    background: #d0d0d0 !important;
+    color: #6b6b6b !important;
+}
+
+/* Badges de estado para la columna de acciones cuando no son editables */
+.status-badge {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+.status-badge.aprobada {
+    background: #e6f4ff;
+    color: #0b66a3;
+    border: 1px solid #cfeeff;
+}
+.status-badge.rechazada {
+    background: #f7f2f3;
+    color: #8a6b6b;
+    border: 1px solid #f0e6e7;
+}
+
+/* Modal confirmación */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+    width: 400px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.modal-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    animation: iconBounce 0.5s ease-out;
+}
+
+@keyframes iconBounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* Estilo para modal de aprobar */
+.modal-approve {
+    border-top: 4px solid var(--success);
+}
+
+.modal-approve .modal-icon {
+    color: var(--success);
+}
+
+.modal-approve p {
+    color: #2d5016;
+}
+
+/* Estilo para modal de rechazar */
+.modal-reject {
+    border-top: 4px solid var(--danger);
+}
+
+.modal-reject .modal-icon {
+    color: var(--danger);
+}
+
+.modal-reject p {
+    color: #721c24;
+}
+
+.modal-content p { 
+    margin-bottom: 25px; 
+    font-size: 18px; 
+    font-weight: 500;
+    color: #333;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.modal-content button {
+    flex: 1;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.confirm-btn { 
+    background: var(--success);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.confirm-btn:hover { 
+    background: var(--success-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
+}
+
+.cancel-btn { 
+    background: var(--danger);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.cancel-btn:hover { 
+    background: var(--danger-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(220, 53, 69, 0.4);
+}
+
+/* Toast para mensajes */
+.toast {
+    display: none;
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: var(--dark);
+    color: #fff;
+    padding: 16px 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    z-index: 3000;
+    font-size: 15px;
+    font-weight: 500;
+    max-width: 400px;
+    align-items: center;
+    gap: 12px;
+    opacity: 0;
+    transform: translateX(400px);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
+.toast.show {
+    display: flex;
+    opacity: 1;
+    transform: translateX(0);
+    animation: toastSlideIn 0.3s ease-out;
+}
+
+.toast::before {
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    font-size: 20px;
+}
+
+.toast.info {
+    background: #2196F3;
+}
+
+.toast.info::before {
+    content: "\f05a"; /* fa-circle-info */
+}
+
+.toast.success {
+    background: var(--success);
+}
+
+.toast.success::before {
+    content: "\f00c"; /* fa-check */
+}
+
+.toast.error {
+    background: var(--danger);
+}
+
+.toast.error::before {
+    content: "\f06a"; /* fa-triangle-exclamation */
+}
+
+.toast.warning {
+    background: var(--warning);
+    color: var(--dark);
+}
+
+.toast.warning::before {
+    content: "\f071"; /* fa-exclamation-triangle */
+}
+
+@keyframes toastSlideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Nuevos estilos para el diseño mejorado */
+.content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.content-header h3 {
+    margin: 0;
+}
+
+.filters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filter-select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #fff;
+    font-size: 14px;
+    color: var(--dark);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-select:hover {
+    border-color: var(--primary);
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(97, 18, 50, 0.1);
+}
+
+/* Grid de solicitudes */
+.requests-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+/* Cards de solicitudes */
+.request-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.request-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.request-card.pendiente {
+    border-left-color: var(--warning);
+}
+
+.request-card.aprobada {
+    border-left-color: var(--success);
+}
+
+.request-card.rechazada {
+    border-left-color: var(--danger);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 15px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-bottom: 1px solid #eee;
+}
+
+.card-employee-info {
+    flex: 1;
+}
+
+.card-employee-name {
+    margin: 0 0 5px 0;
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--dark);
+}
+
+.card-department {
+    font-size: 13px;
+    color: var(--gray);
+}
+
+.card-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.card-status.pendiente {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.card-status.aprobada {
+    background: #d4edda;
+    color: #155724;
+}
+
+.card-status.rechazada {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.card-status .status-icon {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.card-body {
+    padding: 15px;
+}
+
+.card-detail {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.card-detail:last-child {
+    margin-bottom: 0;
+}
+
+.card-detail i {
+    color: var(--primary);
+    margin-top: 3px;
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+}
+
+.card-detail.notes {
+    padding-top: 12px;
+    border-top: 1px solid #eee;
+}
+
+.card-detail.notes .detail-value {
+    font-style: italic;
+    color: var(--gray);
+}
+
+.detail-label {
+    display: block;
+    font-size: 12px;
+    color: var(--gray);
+    font-weight: 500;
+    margin-bottom: 3px;
+}
+
+.detail-value {
+    display: block;
+    font-size: 14px;
+    color: var(--dark);
+    font-weight: 600;
+}
+
+.detail-sub {
+    display: block;
+    font-size: 12px;
+    color: var(--gray);
+    font-style: italic;
+    margin-top: 2px;
+}
+
+.card-footer {
+    padding: 15px;
+    background: #f8f9fa;
+    border-top: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.card-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.card-btn {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 13px;
+    border-radius: 6px;
+}
+
+.card-status-badge {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.card-status-badge.aprobada {
+    background: #d4edda;
+    color: #155724;
+}
+
+.card-status-badge.rechazada {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.details-btn {
+    width: 100%;
+    padding: 10px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.details-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+/* Estado vacío */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--gray);
+}
+
+.empty-state i {
+    font-size: 64px;
+    color: #ddd;
+    margin-bottom: 20px;
+}
+
+.empty-state p {
+    font-size: 18px;
+    margin: 0;
+}
+
+/* Modal de detalles */
+/* Estilos del modal de preview (igual que index.html) */
+.preview-modal-content {
+    max-width: 210mm;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 0;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+}
+
+.preview-content-wrapper {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: fit-content;
+}
+
+.preview-document {
+    background-color: white;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-top: 0;
+    width: 100%;
+    max-width: 210mm;
+    box-sizing: border-box;
+}
+
+.preview-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+    width: 100%;
+}
+
+.details-modal-content {
+    max-width: 900px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 0;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 8px 8px 0 0;
+    position: relative;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #fff;
+    flex: 1;
+}
+
+.close-modal-btn {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 28px;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 10;
+    flex-shrink: 0;
+}
+
+.close-modal-btn:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+.details-content {
+    padding: 25px;
+}
+
+/* Estilos del preview-document (igual que index.html) */
+.preview-document {
+    background-color: white;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-top: 0;
+    max-width: 210mm;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: fit-content;
+}
+
+.preview-document.ipn-format {
+    font-family: Arial, sans-serif;
+    line-height: 1.4;
+}
+
+/* Estilos IPN para el modal (reutilizados del index) */
+.preview-document .institutional-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    margin-bottom: 8px;
+    gap: 10px;
+}
+
+.preview-document .institutional-logo {
+    width: 70px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.preview-document .institutional-logo img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.preview-document .institutional-text {
+    text-align: center;
+    flex: 1;
+    margin-left: 0;
+}
+
+.preview-document .institutional-text h1 {
+    color: #000;
+    margin: 0;
+    margin-bottom: 0;
+    font-size: 14px;
+    text-transform: uppercase;
+    line-height: 1.0;
+    text-align: center;
+    font-weight: bold;
+}
+
+.preview-document .institutional-text h2 {
+    color: #000;
+    font-size: 14px;
+    margin: 0;
+    line-height: 1.0;
+    text-align: center;
+    font-weight: bold;
+}
+
+.preview-document .institutional-text p {
+    color: #000;
+    font-size: 12px;
+    margin: 0;
+    line-height: 1.0;
+    text-align: center;
+    font-weight: bold;
+    padding: 0;
+    margin-bottom: 0;
+}
+
+.preview-document .institutional-text .ipn-title {
+    text-align: center;
+    margin: 0;
+    color: #000;
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding: 0;
+    line-height: 1.0;
+}
+
+.preview-document .ipn-content-box {
+    border: 2px solid #000;
+    padding: 12px 25px 8px 25px;
+    margin-top: 8px;
+    margin-bottom: 0;
+    text-transform: uppercase;
+    font-family: Arial, sans-serif;
+    width: 100%;
+    box-sizing: border-box;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.preview-document .ipn-request-text {
+    margin: 8px 0;
+}
+
+.preview-document .ipn-request-text p {
+    margin: 6px 0;
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.preview-document .ipn-content-box strong:not(.ipn-line-extend strong) {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+}
+
+.preview-document .ipn-observations {
+    font-style: italic;
+    text-transform: none;
+    font-size: 10px;
+    margin: 4px 0;
+    line-height: 1.3;
+}
+
+.preview-document .ipn-text-left {
+    text-align: left !important;
+    white-space: normal;
+}
+
+.preview-document .ipn-text-left:has(.ipn-employee-name-underline) {
+    display: flex;
+    align-items: baseline;
+}
+
+.preview-document .ipn-line-extend {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    display: inline-block;
+}
+
+.preview-document .ipn-line-extend strong {
+    position: relative;
+    text-decoration: none !important;
+}
+
+.preview-document .ipn-line-extend strong::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 2000px;
+    border-bottom: 1px solid #000;
+    transform: translateY(-1px);
+    z-index: 0;
+}
+
+.preview-document .ipn-employee-name-underline {
+    border-bottom: 1px solid #000;
+    display: inline-block;
+    flex: 1;
+    min-width: 0;
+    padding-bottom: 2px;
+    margin-left: 4px;
+}
+
+.preview-document .ipn-date-right {
+    text-align: right !important;
+}
+
+.preview-document .ipn-signature-area {
+    margin-top: 12px;
+}
+
+.preview-document .ipn-signature-center {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    margin-bottom: 12px;
+}
+
+.preview-document .ipn-signature-line-firma {
+    border-bottom: 1px solid #000;
+    height: 25px;
+    width: 160px;
+    margin-bottom: 3px;
+}
+
+.preview-document .ipn-signature-label-center {
+    font-size: 11px;
+    font-weight: normal;
+    width: 160px;
+    text-align: center;
+}
+
+.preview-document .ipn-received-dept {
+    margin: 10px 0;
+}
+
+.preview-document .ipn-received-label {
+    font-size: 11px;
+    font-weight: normal;
+    margin-bottom: 5px;
+    text-align: center;
+    width: 38%;
+}
+
+.preview-document .ipn-dept-line-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.preview-document .ipn-signature-line-dept {
+    border-bottom: 1px solid #000;
+    height: 25px;
+    width: 38%;
+    margin-bottom: 3px;
+}
+
+.preview-document .ipn-dept-days-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 5px;
+    width: 100%;
+}
+
+.preview-document .ipn-dept-label-container {
+    width: 38%;
+    text-align: center;
+}
+
+.preview-document .ipn-signature-label-dept {
+    font-size: 11px;
+    font-weight: normal;
+    text-align: center;
+}
+
+.preview-document .ipn-days-inline-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.preview-document .days-label-inline {
+    font-size: 10px;
+    font-weight: normal;
+    text-decoration: none;
+}
+
+.preview-document .ipn-underline {
+    text-decoration: underline;
+}
+
+.preview-document .days-box-inline {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 28px;
+    height: 22px;
+    border: 1.5px solid #000;
+    font-weight: bold;
+    font-size: 11px;
+}
+
+.preview-document .ipn-signature-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.preview-document .ipn-signature-table td {
+    padding: 10px;
+    vertical-align: top;
+    width: 50%;
+}
+
+.preview-document .ipn-signature-line {
+    border-bottom: 1px solid #000;
+    height: 40px;
+    margin-bottom: 5px;
+}
+
+.preview-document .ipn-signature-label {
+    text-align: center;
+    font-size: 14px;
+}
+
+.preview-document .ipn-received {
+    margin-top: 30px;
+    text-align: left;
+}
+
+.preview-document .ipn-days-container {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.preview-document .days-label {
+    font-weight: bold;
+    color: var(--dark);
+}
+
+.preview-document .days-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 35px;
+    height: 30px;
+    border: 1.5px solid var(--dark);
+    border-radius: 5px;
+    background-color: #ffffff;
+    font-weight: bold;
+}
+
+.details-meta {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-top: 30px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.meta-label {
+    font-size: 12px;
+    color: var(--gray);
+    font-weight: 500;
+}
+
+.meta-value {
+    font-size: 14px;
+    color: var(--dark);
+    font-weight: 600;
+}
+
+.meta-value.status-pendiente {
+    color: #856404;
+}
+
+.meta-value.status-aprobada {
+    color: #155724;
+}
+
+.meta-value.status-rechazada {
+    color: #721c24;
+}
+
+.details-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.details-actions .btn-primary,
+.preview-actions .btn-primary {
+    background: #3d0b1f;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+    width: 100%;
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.details-actions .btn-primary:hover,
+.preview-actions .btn-primary:hover {
+    background: #4a0e26;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .requests-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .content-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .filters {
+        width: 100%;
+    }
+    
+    .filter-select {
+        flex: 1;
+        min-width: 150px;
+    }
+    
+    .details-modal-content {
+        width: 95%;
+        max-height: 95vh;
+    }
+    
+    .preview-document .institutional-header {
+        flex-direction: column;
+    }
+    
+    .details-meta {
+        flex-direction: column;
+        gap: 15px;
+    }
+}
+
+/* Estilos de impresión para el modal de detalles */
+@media print {
+    @page {
+        size: A5 landscape; /* A5 horizontal (210mm x 148mm) */
+        margin: 8mm 10mm;
+    }
+
+    body * {
+        visibility: hidden;
+    }
+
+    .preview-modal-content,
+    .preview-modal-content * {
+        visibility: visible;
+    }
+
+    .preview-modal-content {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+
+    .modal-header,
+    .preview-actions,
+    .details-meta,
+    .close-modal-btn {
+        display: none !important;
+    }
+
+    .preview-content-wrapper {
+        padding: 15px !important;
+    }
+
+    .preview-document {
+        padding: 0 !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+    }
+
+    /* Encabezado institucional más compacto para A5 horizontal */
+    .preview-document .institutional-header {
+        margin-bottom: 6px !important;
+        gap: 8px !important;
+        display: flex !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+        flex-direction: row !important;
+    }
+
+    .preview-document .institutional-logo {
+        width: 45px !important;
+        height: 45px !important;
+        flex-shrink: 0 !important;
+        align-self: flex-start !important;
+    }
+
+    .preview-document .institutional-text {
+        text-align: center !important;
+        flex: 1 !important;
+    }
+
+    .preview-document .institutional-text h1 {
+        font-size: 13px !important;
+        margin-bottom: 2px !important;
+        line-height: 1.2 !important;
+        text-align: center !important;
+    }
+
+    .preview-document .institutional-text h2 {
+        font-size: 11px !important;
+        margin: 1px 0 !important;
+        line-height: 1.2 !important;
+        text-align: center !important;
+    }
+
+    .preview-document .institutional-text p {
+        font-size: 8px !important;
+        margin: 0 !important;
+        line-height: 1.1 !important;
+        text-align: center !important;
+    }
+
+    /* Título */
+    .preview-document .ipn-title {
+        margin: 8px 0 !important;
+        font-size: 12px !important;
+        padding-bottom: 4px !important;
+        line-height: 1.2 !important;
+    }
+
+    /* Caja con borde negro para el contenido - más compacta */
+    .preview-document .ipn-content-box {
+        border: 2px solid #000 !important;
+        padding: 8px 18px 6px 18px !important;
+        margin-top: 6px !important;
+        margin-bottom: 0 !important;
+        page-break-inside: avoid !important;
+        text-transform: uppercase !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .preview-document .ipn-request-text {
+        margin: 6px 0 !important;
+    }
+
+    .preview-document .ipn-request-text p {
+        margin: 4px 0 !important;
+        font-size: 10px !important;
+        line-height: 1.3 !important;
+        text-transform: uppercase !important;
+    }
+
+    .preview-document .ipn-text-left {
+        text-align: left !important;
+        white-space: normal !important;
+    }
+
+    .preview-document .ipn-text-left:has(.ipn-employee-name-underline) {
+        display: flex !important;
+        align-items: baseline !important;
+    }
+
+    .preview-document .ipn-line-extend {
+        display: inline-block !important;
+        position: relative !important;
+        width: 100% !important;
+        overflow: hidden !important;
+    }
+
+    .preview-document .ipn-line-extend strong {
+        position: relative !important;
+        text-decoration: none !important;
+    }
+
+    .preview-document .ipn-line-extend strong::after {
+        content: '' !important;
+        position: absolute !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        width: 2000px !important;
+        border-bottom: 1.5px solid #000 !important;
+        transform: translateY(-1px) !important;
+        z-index: 0 !important;
+    }
+
+    .preview-document .ipn-employee-name-underline {
+        border-bottom: 1.5px solid #000 !important;
+        display: inline-block !important;
+        flex: 1 !important;
+        min-width: 0 !important;
+        padding-bottom: 2px !important;
+        margin-left: 4px !important;
+    }
+
+    .preview-document .ipn-observations {
+        text-transform: none !important;
+        font-size: 9px !important;
+        margin: 4px 0 !important;
+        line-height: 1.2 !important;
+    }
+
+    /* Área de firmas más compacta */
+    .preview-document .ipn-signature-area {
+        margin-top: 10px !important;
+    }
+
+    .preview-document .ipn-received-dept {
+        margin-top: 8px !important;
+    }
+
+    .preview-document .ipn-signature-center {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-end !important;
+        margin-bottom: 10px !important;
+    }
+
+    .preview-document .ipn-signature-line-firma {
+        border-bottom: 1.5px solid #000 !important;
+        height: 20px !important;
+        width: 150px !important;
+        margin-bottom: 2px !important;
+    }
+
+    .preview-document .ipn-signature-label-center {
+        font-size: 9px !important;
+        width: 150px !important;
+        text-align: center !important;
+        font-weight: normal !important;
+    }
+
+    .preview-document .ipn-dept-days-row {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-top: 3px !important;
+        width: 100% !important;
+    }
+
+    .preview-document .ipn-received-label {
+        margin-bottom: 4px !important;
+        text-align: center !important;
+        width: 35% !important;
+        font-size: 9px !important;
+        font-weight: normal !important;
+    }
+
+    .preview-document .ipn-signature-line-dept {
+        border-bottom: 1.5px solid #000 !important;
+        height: 20px !important;
+        width: 35% !important;
+        margin-bottom: 2px !important;
+    }
+
+    .preview-document .ipn-dept-label-container {
+        width: 35% !important;
+        text-align: center !important;
+    }
+
+    .preview-document .ipn-signature-label-dept {
+        text-align: center !important;
+        font-size: 9px !important;
+        font-weight: normal !important;
+    }
+
+    .preview-document .ipn-signature-label-center,
+    .preview-document .ipn-signature-label-dept {
+        font-size: 9px !important;
+        font-weight: normal !important;
+    }
+
+    .preview-document .days-label-inline {
+        font-size: 8px !important;
+        font-weight: normal !important;
+        text-decoration: none !important;
+    }
+
+    .preview-document .ipn-content-box strong {
+        text-decoration: underline !important;
+        text-underline-offset: 3px !important;
+        text-decoration-thickness: 1px !important;
+    }
+
+
+    .preview-document .ipn-underline {
+        text-decoration: underline !important;
+    }
+
+    .preview-document .days-box-inline {
+        width: 25px !important;
+        height: 20px !important;
+        font-size: 10px !important;
+        border: 1.5px solid #000 !important;
+    }
+
+    .preview-document .ipn-signature-table {
+        margin-top: 15px !important;
+    }
+
+    .preview-document .ipn-signature-table td {
+        padding: 8px !important;
+        vertical-align: top !important;
+    }
+
+    .preview-document .ipn-days-container {
+        margin-top: 15px !important;
+    }
+
+    .preview-document .days-label {
+        font-size: 11px !important;
+    }
+
+    .preview-document .days-box {
+        width: 30px !important;
+        height: 25px !important;
+        font-size: 12px !important;
+        border: 1.5px solid #000 !important;
+    }
+
+    /* Evitar saltos de página */
+    .preview-document .ipn-signature-table,
+    .preview-document .ipn-signature-table td,
+    .preview-document .ipn-content-box {
+        page-break-inside: avoid !important;
+    }
+}
+
+/* ================================================================= */
+/* ESTILOS ADICIONALES NECESARIOS PARA EL HISTORIAL */
+/* ================================================================= */
+
+/* Estado visual para botones deshabilitados en cards */
+.card-btn[disabled] {
+    background: #d0d0d0 !important;
+    color: #6b6b6b !important;
+    cursor: default !important;
+    opacity: 0.7 !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+.card-btn[disabled]:hover {
+    background: #d0d0d0 !important;
+    transform: none !important;
+}
+
+/* Badges de estado para la columna de acciones cuando no son editables */
+.card-status-badge {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.card-status-badge.aprobada {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.card-status-badge.rechazada {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Animación suave para la actualización de estado */
+.request-card {
+    transition: all 0.3s ease;
+}
+
+/* Efecto para cuando se está procesando una acción */
+.request-card.processing {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Botones en el footer de las cards */
+.card-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.card-actions .card-btn {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 13px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.card-actions .accept-btn {
+    background: var(--success);
+    color: #fff;
+}
+
+.card-actions .accept-btn:hover:not([disabled]) {
+    background: var(--success-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+}
+
+.card-actions .reject-btn {
+    background: var(--danger);
+    color: #fff;
+}
+
+.card-actions .reject-btn:hover:not([disabled]) {
+    background: var(--danger-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+}
+
+/* Estilos para los botones del modal */
+.modal-content button {
+    flex: 1;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.confirm-btn { 
+    background: var(--success);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.confirm-btn:hover { 
+    background: var(--success-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
+}
+
+.cancel-btn { 
+    background: var(--danger);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.cancel-btn:hover { 
+    background: var(--danger-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(220, 53, 69, 0.4);
+}
+
+/* Estilo para modal de aprobar */
+.modal-approve {
+    border-top: 4px solid var(--success);
+}
+
+.modal-approve .modal-icon {
+    color: var(--success);
+}
+
+.modal-approve p {
+    color: #2d5016;
+}
+
+/* Estilo para modal de rechazar */
+.modal-reject {
+    border-top: 4px solid var(--danger);
+}
+
+.modal-reject .modal-icon {
+    color: var(--danger);
+}
+
+.modal-reject p {
+    color: #721c24;
+}
+
+/* Botón de detalles */
+.details-btn {
+    width: 100%;
+    padding: 10px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.details-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .card-actions {
+        flex-direction: column;
+    }
+    
+    .card-actions .card-btn {
+        width: 100%;
+    }
+    
+    .modal-buttons {
+        flex-direction: column;
+    }
+    
+    .modal-content button {
+        width: 100%;
+    }
+}
+
+/* Estados de las tarjetas para bordes izquierdos */
+.request-card.pendiente {
+    border-left-color: #ff9800;
+}
+
+.request-card.aprobada {
+    border-left-color: #28a745;
+}
+
+.request-card.rechazada {
+    border-left-color: #dc3545;
+}
+
+/* Clases de estado para el texto */
+.status-aprobada {
+    color: #155724;
+}
+
+.status-rechazada {
+    color: #721c24;
+}
+
+.status-pendiente {
+    color: #856404;
+}

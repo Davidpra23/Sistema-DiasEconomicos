@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión de Días Libres - Administrador</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="Frontend/css/Estilosindex.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Sistema de Días Libres - Administrador</span>
+            </div>
+            <div class="user-info">
+                <i class="fas fa-user-shield"></i>
+                <span>Modo Administrador</span>
+            </div>
+        </header>
+
+        <div class="admin-panel">
+            <div class="search-section">
+                <h2><i class="fas fa-search"></i> Buscar Empleado</h2>
+
+                <div class="form-group">
+                    <label for="searchEmployee">Nombre del empleado</label>
+                    <input type="text" id="searchEmployee" placeholder="Escribe el nombre a buscar">
+                </div>
+
+                <div class="form-group form-group-compact">
+                    <label for="departmentFilter">Departamento</label>
+                    <select id="departmentFilter">
+                        <option value="">Todos los departamentos</option>
+                        <!-- Se carga dinámicamente -->
+                    </select>
+                </div>
+
+                <div class="employee-list">
+                    <!-- Los empleados se cargan dinámicamente desde la API -->
+                </div>
+
+                <div
+                    style="margin-top: auto; padding-top: 20px; text-align:center; display: flex; flex-direction: column; gap: 10px;">
+                    <button type="button" id="historyBtnLeft" class="btn-warning" style="width: 100%;">
+                        <i class="fas fa-history"></i> Ver Historial
+                    </button>
+                    <button type="button" id="manageEmployeesBtn" class="btn-secondary"
+                        onclick="window.location.href='Backend/GestionEmpleados.html'" style="width: 100%;">
+                        <i class="fas fa-users"></i> Gestionar Empleados
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2><i class="fas fa-file-alt"></i> Generar Solicitud</h2>
+
+                <div class="form-group">
+                    <label for="employeeName">Nombre del empleado</label>
+                    <input type="text" id="employeeName" value="" disabled>
+                </div>
+
+                <div class="form-group">
+                    <label for="daysRequested">Número de días a solicitar</label>
+                    <select id="daysRequested" class="styled-select">
+                        <option value="1">1 día</option>
+                        <option value="2">2 días</option>
+                        <option value="3">3 días</option>
+                    </select>
+                    <small id="daysWarning" style="color: #ff6b6b; display: none;"></small>
+                </div>
+
+                <div class="form-group">
+                    <label for="requestDate">Fecha solicitada</label>
+                    <input type="date" id="requestDate" class="styled-date-input">
+                    <div id="calendarContainer"
+                        style="background:#fff; border:1px solid #ddd; border-radius:6px; padding:10px; margin-top:10px; width:100%;">
+                        <!-- Header con mes/año y botones -->
+                        <div
+                            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <button type="button" id="prevMonthBtn"
+                                style="background:#611232; color:#fff; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">←
+                                Anterior</button>
+                            <span id="monthYearDisplay"
+                                style="font-weight:bold; color:#611232; font-size:0.95rem;">Diciembre 2025</span>
+                            <button type="button" id="nextMonthBtn"
+                                style="background:#611232; color:#fff; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Siguiente
+                                →</button>
+                        </div>
+
+
+                        <!-- Encabezados días semana -->
+                        <div
+                            style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px; text-align:center; font-size:0.8rem; margin-bottom:10px;">
+                            <div style="font-weight:bold; color:#611232;">L</div>
+                            <div style="font-weight:bold; color:#611232;">M</div>
+                            <div style="font-weight:bold; color:#611232;">X</div>
+                            <div style="font-weight:bold; color:#611232;">J</div>
+                            <div style="font-weight:bold; color:#611232;">V</div>
+                            <div style="font-weight:bold; color:#611232;">S</div>
+                            <div style="font-weight:bold; color:#611232;">D</div>
+                        </div>
+                        <div id="calendarDays" style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px;">
+                        </div>
+
+                        <!-- Botón para limpiar selección -->
+                        <div id="clearSelectionContainer" style="text-align:center; margin-top:10px; display:none;">
+                            <button type="button" id="clearSelectionBtn"
+                                style="background:#ff6b6b; color:#fff; border:none; padding:4px 12px; border-radius:4px; cursor:pointer; font-size:0.75rem; transition: background 0.2s;"
+                                onmouseover="this.style.background='#ff5252'"
+                                onmouseout="this.style.background='#ff6b6b'">
+                                <i class="fas fa-times-circle"></i> Limpiar selección
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="observations">Observaciones</label>
+                    <textarea id="observations" rows="3" placeholder="Observaciones (opcional)"></textarea>
+                </div>
+
+                <!-- Sección de información del empleado -->
+                <div class="employee-info-section">
+                    <h3><i class="fas fa-info-circle"></i> Información del Empleado</h3>
+                    <div class="employee-detail">
+                        <span class="employee-detail-label">Nombre:</span>
+                        <span class="employee-detail-value" id="infoEmployeeName"></span>
+                    </div>
+                    <div class="employee-detail">
+                        <span class="employee-detail-label">ID:</span>
+                        <span class="employee-detail-value" id="infoEmployeeId"></span>
+                    </div>
+                    <div class="employee-detail">
+                        <span class="employee-detail-label">Departamento:</span>
+                        <span class="employee-detail-value" id="infoEmployeeDept"></span>
+                    </div>
+                    <div class="employee-detail">
+                        <span class="employee-detail-label">Días usados (mes/año):</span>
+                        <span class="employee-detail-value" id="infoDaysUsed"></span>
+                    </div>
+                </div>
+
+                <!-- Sección de detalles de la solicitud -->
+                <div class="employee-info-section">
+                    <h3><i class="fas fa-calendar-check"></i> Detalles de la Solicitud</h3>
+                    <div class="employee-detail">
+                        <span class="employee-detail-label">Fecha solicitada:</span>
+                        <span class="employee-detail-value" id="infoRequestDate">15/08/2023</span>
+                    </div>
+                    <div class="employee-detail">
+                        <span class="employee-detail-label">Día de la semana:</span>
+                        <span class="employee-detail-value" id="infoDayOfWeek">Martes</span>
+                    </div>
+                    <div class="employee-detail">
+                        <span class="employee-detail-label">Anticipación:</span>
+                        <span class="employee-detail-value" id="infoAnticipation">3 días</span>
+                    </div>
+                </div>
+
+                <!-- Botón de previsualización al final -->
+                <div class="form-actions" style="margin-top: 20px;">
+                    <button type="button" id="previewBtn" class="btn-preview">
+                        <i class="fas fa-eye"></i> Previsualizar Solicitud
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Sistema de Gestión de Días Económicos © 2026 | CIIDIR Guasave, Sinaloa</p>
+        </div>
+    </div>
+
+    <!-- Modal de Vista Previa de Solicitud -->
+    <div class="modal" id="previewModal">
+        <div class="modal-content preview-modal-content">
+            <div class="modal-header">
+                <h3>Vista Previa de Solicitud</h3>
+                <button class="close-modal-btn" id="closePreviewModal">&times;</button>
+            </div>
+            <div class="preview-content-wrapper" id="previewContentWrapper">
+                <div class="preview-document ipn-format">
+                    <!-- Encabezado institucional con logo REAL del IPN -->
+                    <div class="institutional-header">
+                        <div class="institutional-logo">
+                            <img src="Frontend/imagenes/ipn_logo.png" alt="Logo IPN">
+                        </div>
+                        <div class="institutional-text">
+                            <h1>INSTITUTO POLITÉCNICO NACIONAL</h1>
+                            <h2>CIIDIR-SINALOA</h2>
+                            <p>CENTRO INTERDISCIPLINARIO DE INVESTIGACIÓN<br>PARA EL DESARROLLO INTEGRAL REGIONAL</p>
+                            <div class="ipn-title">
+                                SOLICITUD DE PERMISO ECONOMICO
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ipn-content-box">
+                        <div class="ipn-request-text">
+
+
+                            <p class="ipn-date-right">GUASAVE, SINALOA A <strong class="ipn-padding-small"><span
+                                        id="ipnCurrentDay">12</span></strong> DE <strong class="ipn-padding-small"><span
+                                        id="ipnCurrentMonthNumber"></span></strong> DEL 20<strong
+                                    class="ipn-padding-none"><span id="ipnCurrentYearLastTwo">25</span></strong></p>
+
+                            <p class="ipn-text-left ipn-line-extend"><span style="margin-right: 5px;">EL
+                                    C.</span><strong id="ipnEmployeeName"></strong></p>
+                            <p class="ipn-text-left ipn-line-extend"><span style="margin-right: 5px;">SOLICITA PERMISO
+                                    POR <strong id="ipnDaysRequested">1</strong> DÍA(S)</span> <strong
+                                    id="ipnMonthNumber"></strong></p>
+                            <p class="ipn-text-left" id="ipnDateDetail">DE <strong>__________</strong> DEL
+                                20<strong>____</strong></p>
+                            <p id="ipnObservations" class="ipn-observations" style="display:none;"></p>
+                        </div>
+
+                        <div class="ipn-signature-area">
+                            <div class="ipn-signature-center">
+                                <div class="ipn-signature-line-firma"></div>
+                                <div class="ipn-signature-label-center">FIRMA</div>
+                            </div>
+
+                            <div class="ipn-received-dept">
+                                <div class="ipn-received-label">RECIBIO</div>
+                                <div class="ipn-dept-line-container">
+                                    <div class="ipn-signature-line-dept"></div>
+                                    <div class="ipn-dept-days-row">
+                                        <div class="ipn-dept-label-container">
+                                            <span class="ipn-signature-label-dept">JEFE DE DEPARTAMENTO</span>
+                                        </div>
+                                        <span class="ipn-days-inline-right">
+                                            <span class="days-label-inline">NÚMERO DE DÍAS GOZADOS:</span>
+                                            <div class="days-box-inline" id="ipnDaysEnjoyed">1</div>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="preview-actions">
+                    <button class="btn-primary" id="generatePDFBtn">
+                        <i class="fas fa-print"></i> Generar PDF
+                    </button>
+                    <button class="btn-success" id="saveRecordBtn">
+                        <i class="fas fa-save"></i> Guardar Registro
+                    </button>
+                    <button class="btn-danger" id="closePreview">
+                        <i class="fas fa-times"></i> Cerrar Vista Previa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de éxito -->
+    <div class="modal" id="successModal" style="display:none;">
+        <div class="modal-content success-modal-content">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3>¡Éxito!</h3>
+            <p>Solicitud guardada correctamente.</p>
+            <button class="btn-success" id="closeSuccessModal">Aceptar</button>
+        </div>
+    </div>
+
+    <!-- Toast para notificaciones -->
+    <div class="toast" id="toast" style="display: none;"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Variables para el calendario
+            let employeeRequests = [];
+            let calendarDate = new Date(); // Para navegación independiente
+
+            // Ocultar el modal de previsualización inicialmente
+            document.getElementById('previewModal').style.display = 'none';
+            // Ocultar el modal de éxito inicialmente
+            document.getElementById('successModal').style.display = 'none';
+
+            // NO establecer fecha mínima - permitir fechas anteriores
+            // Establecer la fecha actual como valor por defecto
+            const today = new Date();
+            const todayDate = today.toISOString().split('T')[0];
+            document.getElementById('requestDate').value = todayDate;
+
+            // Actualizar información inicial
+            updateEmployeeInfo();
+
+            // Renderizar calendario inicial
+            renderCalendar();
+
+            // Array para almacenar fechas seleccionadas (para selección múltiple)
+            let selectedDates = [];
+            // Variable para rastrear la primera fecha seleccionada (orden de selección, no cronológico)
+            let firstSelectedDate = null;
+
+            // Renderizar calendario
+            async function renderCalendar() {
+                const selectedEmployee = document.querySelector('.employee-item.selected');
+                if (!selectedEmployee) return;
+
+                const year = calendarDate.getFullYear();
+                const month = calendarDate.getMonth();
+
+                // Actualizar display del mes/año
+                const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+                document.getElementById('monthYearDisplay').textContent = `${monthNames[month]} ${year}`;
+
+                // Obtener solicitudes del empleado
+                try {
+                    const res = await fetch(`server/php-api/requests.php?employee_id=${selectedEmployee.dataset.id}`);
+                    if (res.ok) {
+                        employeeRequests = await res.json();
+                    }
+                } catch (err) {
+                    console.error('Error:', err);
+                }
+
+                const firstDay = new Date(year, month, 1).getDay() || 1;
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+                const calendarDaysEl = document.getElementById('calendarDays');
+                calendarDaysEl.innerHTML = '';
+
+                const daysUsedMonth = parseInt(selectedEmployee.dataset.daysUsedMonth || '0', 10);
+                const maxDaysMonth = 3;
+
+                // Obtener mes/año actual para comparación
+                const today = new Date();
+                const currentMonth = today.getMonth();
+                const currentYear = today.getFullYear();
+                const isCurrentMonth = month === currentMonth && year === currentYear;
+
+                // Días mes anterior
+                for (let i = firstDay - 1; i >= 0; i--) {
+                    const day = daysInPrevMonth - i;
+                    const el = document.createElement('div');
+                    el.textContent = day;
+                    el.style.cssText = 'padding:8px; background:#eee; color:#999; border-radius:4px; text-align:center; font-size:0.8rem;';
+                    calendarDaysEl.appendChild(el);
+                }
+
+                const daysRequested = parseInt(document.getElementById('daysRequested').value || '1', 10);
+
+                // Calcular cuántos días ya están seleccionados de este mes
+                const selectedDatesInThisMonth = selectedDates.filter(dateStr => {
+                    const d = new Date(dateStr);
+                    return d.getMonth() === month && d.getFullYear() === year;
+                }).length;
+
+                // Calcular cuántos días se han usado en este mes (de solicitudes previas)
+                const usedDaysInThisMonth = employeeRequests.filter(r => {
+                    const reqDate = new Date(r.date_requested);
+                    const reqDays = parseInt(r.days || '1', 10);
+                    // Contar solo si la solicitud está en este mes
+                    return reqDate.getMonth() === month && reqDate.getFullYear() === year;
+                }).reduce((sum, r) => sum + parseInt(r.days || '1', 10), 0);
+
+                // Días disponibles en este mes = máximo - usados - ya seleccionados
+                const availableInThisMonth = maxDaysMonth - usedDaysInThisMonth - selectedDatesInThisMonth;
+
+                // Días mes actual
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    const el = document.createElement('div');
+                    el.textContent = day;
+                    el.style.cssText = 'padding:8px; border-radius:4px; text-align:center; font-size:0.8rem; cursor:pointer; border:1px solid #ddd; transition: all 0.2s;';
+
+                    const isSelected = selectedDates.includes(dateStr);
+
+                    // Determinar si esta fecha está dentro del rango de alguna solicitud del empleado
+                    const request = employeeRequests.find(r => {
+                        const rDays = parseInt(r.days || '1', 10);
+                        const start = new Date(r.date_requested);
+                        start.setHours(0, 0, 0, 0);
+                        const end = new Date(r.date_requested);
+                        end.setDate(end.getDate() + (rDays - 1));
+                        end.setHours(0, 0, 0, 0);
+                        const d = new Date(dateStr);
+                        d.setHours(0, 0, 0, 0);
+                        return d >= start && d <= end;
+                    });
+
+                    if (request) {
+                        // Si la fecha forma parte de una solicitud, marcar según estado y deshabilitar selección
+                        if (request.status === 'aprobada') {
+                            el.style.background = '#1b5e20';
+                            el.style.color = '#fff';
+                            el.style.fontWeight = 'bold';
+                        } else if (request.status === 'pendiente') {
+                            el.style.background = '#fff3cd';
+                            el.style.color = '#856404';
+                        } else {
+                            el.style.background = '#f8d7da';
+                            el.style.color = '#721c24';
+                        }
+                        el.style.cursor = 'not-allowed';
+                        el.title = `Solicitud ${request.status}`;
+                    } else {
+                        // Verificar si se puede seleccionar esta fecha
+                        const canSelectMore = selectedDates.length < daysRequested;
+                        const monthHasSpace = availableInThisMonth > 0 || isSelected;
+
+                        if (!monthHasSpace && !isSelected) {
+                            // No hay espacio en este mes
+                            el.style.background = '#ffebee';
+                            el.style.color = '#c62828';
+                            el.style.opacity = '0.7';
+                            el.style.cursor = 'not-allowed';
+                            el.title = `Límite mensual alcanzado (${maxDaysMonth} días/mes). Ya usados: ${usedDaysInThisMonth}, Seleccionados: ${selectedDatesInThisMonth}`;
+                        } else if (canSelectMore || isSelected) {
+                            // Fecha seleccionable
+                            if (isSelected) {
+                                // Determinar si esta es la primera fecha seleccionada (por orden de selección)
+                                const isFirstDate = dateStr === firstSelectedDate;
+
+                                // Todas las fechas seleccionadas tienen el mismo color
+                                el.style.background = '#611232';
+                                el.style.color = '#fff';
+                                el.style.fontWeight = 'bold';
+                                el.style.boxShadow = '0 2px 4px rgba(97, 18, 50, 0.3)';
+
+                                // Solo la primera fecha tiene un borde distintivo
+                                if (isFirstDate && daysRequested > 1) {
+                                    el.style.border = '3px solid #ffd700'; // Borde dorado
+                                    el.title = 'Fecha principal de la solicitud';
+                                } else {
+                                    el.style.border = '1px solid #ddd';
+                                }
+                            } else {
+                                el.style.background = '#e8f5e9';
+                                el.style.color = '#2e7d32';
+                            }
+
+                            el.addEventListener('click', () => {
+                                if (isSelected) {
+                                    // Deseleccionar
+                                    selectedDates = selectedDates.filter(d => d !== dateStr);
+
+                                    // Si deseleccionamos la primera fecha, actualizar a la siguiente
+                                    if (firstSelectedDate === dateStr) {
+                                        firstSelectedDate = selectedDates.length > 0 ? selectedDates[0] : null;
+                                    }
+                                } else {
+                                    // Verificar límite mensual antes de seleccionar
+                                    const currentSelectedInMonth = selectedDates.filter(d => {
+                                        const dt = new Date(d);
+                                        return dt.getMonth() === month && dt.getFullYear() === year;
+                                    }).length;
+
+                                    if (currentSelectedInMonth + usedDaysInThisMonth >= maxDaysMonth) {
+                                        showToast(`No puedes seleccionar más días en ${monthNames[month]}. Límite: ${maxDaysMonth} días/mes`, 'warning');
+                                        return;
+                                    }
+
+                                    // Seleccionar si no hemos alcanzado el límite total
+                                    if (selectedDates.length < daysRequested) {
+                                        selectedDates.push(dateStr);
+
+                                        // Si es la primera fecha seleccionada, guardarla
+                                        if (firstSelectedDate === null) {
+                                            firstSelectedDate = dateStr;
+                                        }
+                                    } else {
+                                        showToast('Ya has seleccionado el número máximo de días', 'warning');
+                                        return;
+                                    }
+                                }
+
+                                // Actualizar el campo de fecha con la PRIMERA fecha seleccionada (por orden de selección)
+                                if (selectedDates.length > 0 && firstSelectedDate) {
+                                    document.getElementById('requestDate').value = firstSelectedDate;
+                                } else {
+                                    document.getElementById('requestDate').value = '';
+                                }
+
+                                updateEmployeeInfo();
+                                updateObservations();
+                                renderCalendar();
+                            });
+
+                            el.addEventListener('mouseenter', () => {
+                                if (!isSelected) {
+                                    el.style.background = '#c8e6c9';
+                                    el.style.transform = 'scale(1.05)';
+                                }
+                            });
+
+                            el.addEventListener('mouseleave', () => {
+                                if (!isSelected) {
+                                    el.style.background = '#e8f5e9';
+                                    el.style.transform = 'scale(1)';
+                                }
+                            });
+                        } else {
+                            // Ya se alcanzó el límite de selección total
+                            el.style.background = '#f5f5f5';
+                            el.style.color = '#9e9e9e';
+                            el.style.cursor = 'not-allowed';
+                            el.title = `Ya seleccionaste ${daysRequested} día(s)`;
+                        }
+                    }
+
+                    calendarDaysEl.appendChild(el);
+                }
+
+                // Días siguiente mes
+                const totalCells = calendarDaysEl.children.length;
+                for (let day = 1; day <= 42 - totalCells; day++) {
+                    const el = document.createElement('div');
+                    el.textContent = day;
+                    el.style.cssText = 'padding:8px; background:#eee; color:#999; border-radius:4px; text-align:center; font-size:0.8rem;';
+                    calendarDaysEl.appendChild(el);
+                }
+
+                // Mostrar información de la selección
+                updateSelectionInfo();
+            }
+
+            // Función para actualizar observaciones con fechas adicionales
+            function updateObservations() {
+                const observationsField = document.getElementById('observations');
+                const daysRequested = parseInt(document.getElementById('daysRequested').value || '1', 10);
+
+                // Solo actualizar si hay 2 o 3 días seleccionados
+                if (daysRequested > 1 && selectedDates.length > 1) {
+                    // Obtener las fechas adicionales (todas excepto la primera)
+                    const additionalDates = selectedDates.filter(date => date !== firstSelectedDate);
+
+                    if (additionalDates.length > 0) {
+                        // Formatear fechas a dd/mm/yyyy
+                        const formattedDates = additionalDates.map(dateStr => {
+                            const date = new Date(dateStr);
+                            const day = String(date.getDate()).padStart(2, '0');
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const year = date.getFullYear();
+                            return `${day}/${month}/${year}`;
+                        });
+
+                        // Construir el texto según el número de fechas
+                        let observationText = '';
+                        if (formattedDates.length === 1) {
+                            observationText = `También se solicitó la fecha ${formattedDates[0]}`;
+                        } else if (formattedDates.length === 2) {
+                            observationText = `También se solicitaron las fechas ${formattedDates[0]} y ${formattedDates[1]}`;
+                        }
+
+                        observationsField.value = observationText;
+                    } else {
+                        observationsField.value = '';
+                    }
+                } else {
+                    // Si solo hay 1 día o ninguno, limpiar observaciones
+                    observationsField.value = '';
+                }
+            }
+
+            // Función para mostrar información de la selección
+            function updateSelectionInfo() {
+                const daysRequested = parseInt(document.getElementById('daysRequested').value || '1', 10);
+                const warningEl = document.getElementById('daysWarning');
+                const clearBtnContainer = document.getElementById('clearSelectionContainer');
+
+                // Mostrar/ocultar botón de limpiar selección (solo si hay 2 o más días)
+                if (selectedDates.length >= 2) {
+                    clearBtnContainer.style.display = 'block';
+                } else {
+                    clearBtnContainer.style.display = 'none';
+                }
+
+                if (selectedDates.length > 0 && selectedDates.length < daysRequested) {
+                    warningEl.textContent = `⚠️ Has seleccionado ${selectedDates.length} de ${daysRequested} días`;
+                    warningEl.style.display = 'block';
+                    warningEl.style.color = '#ff9800';
+                } else if (selectedDates.length === daysRequested && daysRequested > 1) {
+                    warningEl.textContent = `✓ ${daysRequested} días seleccionados correctamente`;
+                    warningEl.style.display = 'block';
+                    warningEl.style.color = '#4caf50';
+                } else {
+                    warningEl.style.display = 'none';
+                }
+            }
+
+            // Limpiar selección cuando cambia el número de días
+            document.getElementById('daysRequested').addEventListener('change', function () {
+                selectedDates = [];
+                firstSelectedDate = null;
+                document.getElementById('requestDate').value = '';
+                updateEmployeeInfo();
+                updateObservations();
+                renderCalendar();
+            });
+
+            // Botón para limpiar selección
+            document.getElementById('clearSelectionBtn').addEventListener('click', function (e) {
+                e.preventDefault();
+                selectedDates = [];
+                firstSelectedDate = null;
+                document.getElementById('requestDate').value = '';
+                updateEmployeeInfo();
+                updateObservations();
+                renderCalendar();
+                showToast('Selección limpiada', 'info');
+            });
+
+            // Botones de navegación del calendario
+            document.getElementById('prevMonthBtn').addEventListener('click', function (e) {
+                e.preventDefault();
+                calendarDate.setMonth(calendarDate.getMonth() - 1);
+                renderCalendar();
+            });
+
+            document.getElementById('nextMonthBtn').addEventListener('click', function (e) {
+                e.preventDefault();
+                calendarDate.setMonth(calendarDate.getMonth() + 1);
+                renderCalendar();
+            });
+
+            // Cargar empleados desde la API y manejar clics
+            async function loadEmployees() {
+                const listContainer = document.querySelector('.employee-list');
+
+                // Guardar el ID del empleado seleccionado antes de recargar
+                const selectedEmployee = document.querySelector('.employee-item.selected');
+                const selectedEmployeeId = selectedEmployee ? selectedEmployee.dataset.id : null;
+                const selectedEmployeeName = selectedEmployee ? selectedEmployee.querySelector('strong')?.textContent : null;
+
+                try {
+                    const res = await fetch('server/php-api/employees.php');
+                    if (!res.ok) throw new Error('Network response was not ok');
+                    const employees = await res.json();
+
+                    // Vaciar lista y crear elementos según datos
+                    listContainer.innerHTML = '';
+                    if (!employees.length) {
+                        listContainer.innerHTML = '<div class="employee-item"><em>No hay empleados registrados.</em></div>';
+                        return;
+                    }
+                    employees.forEach((emp, idx) => {
+                        const div = document.createElement('div');
+                        // Mantener la selección si es el mismo empleado que estaba seleccionado
+                        const shouldBeSelected = selectedEmployeeId && emp.id == selectedEmployeeId;
+                        div.className = 'employee-item' + (shouldBeSelected ? ' selected' : '');
+                        // incorporar atributos data para días usados y departamento
+                        div.dataset.id = emp.id;
+                        div.dataset.name = emp.name;
+                        div.dataset.department = emp.department ?? '';
+                        div.dataset.departmentId = emp.department_id ?? '';
+                        div.dataset.daysUsedMonth = emp.days_used_month ?? 0;
+                        div.dataset.daysUsedYear = emp.days_used_year ?? 0;
+                        div.innerHTML = `<strong>${emp.name}</strong><div class="employee-details">ID: ${emp.id} - Departamento: ${emp.department ?? 'Sin departamento'}</div>`;
+                        listContainer.appendChild(div);
+                    });
+
+                    // Conectar manejadores de clic
+                    const employeeItems = document.querySelectorAll('.employee-item');
+                    employeeItems.forEach(item => {
+                        item.addEventListener('click', function () {
+                            employeeItems.forEach(i => i.classList.remove('selected'));
+                            this.classList.add('selected');
+
+                            const employeeName = this.querySelector('strong').textContent;
+                            document.getElementById('employeeName').value = employeeName;
+
+                            // Actualizar información del empleado
+                            updateEmployeeInfo();
+
+                            // Renderizar calendario
+                            renderCalendar();
+
+                            // Actualizar también en la previsualización si está visible
+                            if (document.getElementById('previewModal').style.display === 'flex') {
+                                updatePreview();
+                            }
+                        });
+                    });
+
+                    // Mantener el nombre del empleado en el campo si estaba seleccionado
+                    if (selectedEmployeeName && selectedEmployeeId) {
+                        // Verificar que el empleado aún existe en la lista recargada
+                        const stillExists = employees.some(emp => emp.id == selectedEmployeeId);
+                        if (stillExists) {
+                            document.getElementById('employeeName').value = selectedEmployeeName;
+                        }
+                    }
+
+                    // Actualizar info del empleado seleccionado (o limpiar si no hay selección)
+                    updateEmployeeInfo();
+
+                    // Aplicar filtros después de cargar empleados
+                    applyEmployeeFilters();
+                } catch (err) {
+                    console.error('No se pudieron cargar empleados desde la API.', err);
+                    showToast('Error al conectar con la base de datos. Asegúrate de ejecutar esto en un servidor PHP y que la extensión SQLite esté habilitada.', 'error');
+                }
+            }
+
+            // Cargar departamentos
+            async function loadDepartments() {
+                try {
+                    const res = await fetch('server/php-api/employees.php?departments=1');
+                    if (!res.ok) throw new Error('Error al obtener departamentos');
+                    const departments = await res.json();
+                    const select = document.getElementById('departmentFilter');
+                    // Limpiar opciones excepto "Todos los departamentos"
+                    select.innerHTML = '<option value="">Todos los departamentos</option>';
+                    departments.forEach(dept => {
+                        const option = document.createElement('option');
+                        option.value = dept.id;
+                        option.textContent = dept.name;
+                        select.appendChild(option);
+                    });
+                } catch (err) {
+                    console.error('Error al cargar departamentos:', err);
+                }
+            }
+
+            // Función para aplicar filtros (búsqueda y departamento)
+            function applyEmployeeFilters() {
+                const searchText = document.getElementById('searchEmployee').value.toLowerCase();
+                const departmentId = document.getElementById('departmentFilter').value;
+                const employees = document.querySelectorAll('.employee-item');
+
+                employees.forEach(employee => {
+                    const strong = employee.querySelector('strong');
+                    const name = strong ? strong.textContent.toLowerCase() : '';
+                    const empDepartmentId = employee.dataset.departmentId || '';
+
+                    // Filtrar por nombre
+                    const matchesSearch = !searchText || name.includes(searchText);
+
+                    // Filtrar por departamento
+                    const matchesDepartment = !departmentId || empDepartmentId === departmentId;
+
+                    // Mostrar solo si coincide con ambos filtros
+                    if (matchesSearch && matchesDepartment) {
+                        employee.style.display = 'block';
+                    } else {
+                        employee.style.display = 'none';
+                    }
+                });
+            }
+
+            // Intentar cargar empleados desde la API (fall back al HTML estático si hay error)
+            loadEmployees();
+            loadDepartments();
+
+            // Función para actualizar la información del empleado
+            function updateEmployeeInfo() {
+                const selectedEmployee = document.querySelector('.employee-item.selected');
+                if (!selectedEmployee) {
+                    // Limpiar campos si no hay selección
+                    document.getElementById('infoEmployeeName').textContent = '';
+                    document.getElementById('infoEmployeeId').textContent = '';
+                    document.getElementById('infoEmployeeDept').textContent = '';
+                    document.getElementById('infoDaysUsed').textContent = '';
+
+                    // Limpiar también el campo de días gozados si no hay empleado seleccionado
+                    const daysEnjoyedEl = document.getElementById('ipnDaysEnjoyed');
+                    if (daysEnjoyedEl) {
+                        daysEnjoyedEl.textContent = '0';
+                    }
+                } else {
+                    const employeeName = selectedEmployee.querySelector('strong')?.textContent ?? '';
+                    const detailsText = selectedEmployee.querySelector('.employee-details')?.textContent ?? '';
+                    const idMatch = detailsText.match(/ID: (\d+)/);
+                    const deptMatch = detailsText.match(/Departamento: (.+)$/);
+
+                    document.getElementById('infoEmployeeName').textContent = employeeName;
+                    document.getElementById('infoEmployeeId').textContent = idMatch ? idMatch[1] : '';
+                    document.getElementById('infoEmployeeDept').textContent = deptMatch ? deptMatch[1] : '';
+
+                    // Mostrar días usados y disponible (regla: 3 al mes, 12 al año)
+                    const usedMonth = parseInt(selectedEmployee.dataset.daysUsedMonth || '0', 10);
+                    const usedYear = parseInt(selectedEmployee.dataset.daysUsedYear || '0', 10);
+                    const maxMonth = 3;
+                    const maxYear = 12;
+                    // Actualizar el resumen corto
+                    document.getElementById('infoDaysUsed').textContent = `${usedMonth}/${maxMonth} (mes) · ${usedYear}/${maxYear} (año)`;
+
+                    // Actualizar también el campo de días gozados en la vista previa si existe
+                    const daysEnjoyedEl = document.getElementById('ipnDaysEnjoyed');
+                    if (daysEnjoyedEl) {
+                        daysEnjoyedEl.textContent = usedYear;
+                    }
+                }
+
+                // Actualizar también la fecha solicitada (si existe)
+                const requestVal = document.getElementById('requestDate').value;
+                if (requestVal) {
+                    // Parsear la fecha manualmente para evitar problemas de zona horaria
+                    const [yearStr, monthStr, dayStr] = requestVal.split('-');
+                    const requestDate = new Date(parseInt(yearStr), parseInt(monthStr) - 1, parseInt(dayStr));
+                    const day = requestDate.getDate();
+                    const month = requestDate.toLocaleString('es-ES', { month: 'long' });
+                    const year = requestDate.getFullYear();
+                    const dayOfWeek = requestDate.toLocaleString('es-ES', { weekday: 'long' });
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    requestDate.setHours(0, 0, 0, 0);
+
+                    // Si la fecha es anterior a hoy, mostrar "1 día", sino calcular diferencia
+                    let diffDays;
+                    if (requestDate < today) {
+                        diffDays = 1;
+                    } else {
+                        const diffTime = requestDate - today;
+                        diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    }
+
+                    document.getElementById('infoRequestDate').textContent = `${day}/${month}/${year}`;
+                    document.getElementById('infoDayOfWeek').textContent = dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1);
+                    document.getElementById('infoAnticipation').textContent = `${diffDays} día${diffDays !== 1 ? 's' : ''}`;
+                }
+            }
+
+            // Función para actualizar la previsualización
+            function updatePreview() {
+                // Parsear la fecha manualmente para evitar problemas de zona horaria
+                const requestVal = document.getElementById('requestDate').value;
+                const [yearStr, monthStr, dayStr] = requestVal.split('-');
+                const requestDate = new Date(parseInt(yearStr), parseInt(monthStr) - 1, parseInt(dayStr));
+                const today = new Date();
+
+                // Obtener información del empleado seleccionado
+                const selectedEmployee = document.querySelector('.employee-item.selected');
+                if (!selectedEmployee) return; // nada que previsualizar
+                const strong = selectedEmployee.querySelector('strong');
+                const employeeName = strong ? strong.textContent : '';
+
+                // Obtener días solicitados
+                const daysRequested = parseInt(document.getElementById('daysRequested').value) || 1;
+
+                // Actualizar la previsualización con la fecha seleccionada
+                const day = requestDate.getDate();
+                const month = requestDate.toLocaleString('es-ES', { month: 'long' });
+                const year = requestDate.getFullYear();
+                const dayOfWeek = requestDate.toLocaleString('es-ES', { weekday: 'long' });
+
+                // Fecha actual para el encabezado
+                const currentDate = new Date();
+                const currentDay = currentDate.getDate();
+                const currentMonth = currentDate.toLocaleString('es-ES', { month: 'long' });
+                const currentYear = currentDate.getFullYear();
+
+                // Calcular días de anticipación
+                today.setHours(0, 0, 0, 0);
+                requestDate.setHours(0, 0, 0, 0);
+
+                // Si la fecha es anterior a hoy, mostrar "1 día", sino calcular diferencia
+                let diffDays;
+                if (requestDate < today) {
+                    diffDays = 1;
+                } else {
+                    const diffTime = requestDate - today;
+                    diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                }
+
+                // Actualizar todos los campos en la previsualización (todo en mayúsculas)
+                document.getElementById('ipnCurrentDay').textContent = currentDay;
+                const currentMonthNumber = currentDate.getMonth() + 1;
+                document.getElementById('ipnCurrentMonthNumber').textContent = currentMonthNumber;
+                const yearLastTwo = currentYear.toString().slice(-2);
+                document.getElementById('ipnCurrentYearLastTwo').textContent = yearLastTwo;
+                document.getElementById('ipnEmployeeName').textContent = employeeName.toUpperCase();
+                document.getElementById('ipnDaysRequested').textContent = daysRequested;
+
+                // Día del mes después de DÍA(S) (no el número del mes)
+                const dayOfMonth = requestDate.getDate();
+                document.getElementById('ipnMonthNumber').textContent = dayOfMonth;
+
+
+                // Actualizar "DE [MES] DEL [AÑO]" con la fecha solicitada (mes y últimos 2 dígitos del año en negrita)
+                const yearLastTwoReq = year.toString().slice(-2);
+                document.getElementById('ipnDateDetail').innerHTML = `DE <strong class="ipn-padding-small">${month.toUpperCase()}</strong> DEL 20<strong class="ipn-padding-none">${yearLastTwoReq}</strong>`;
+
+                // Actualizar días gozados del año (días usados del año del empleado)
+                const usedYear = parseInt(selectedEmployee.dataset.daysUsedYear || '0', 10);
+                document.getElementById('ipnDaysEnjoyed').textContent = usedYear;
+
+                // Las observaciones NO se muestran en la vista previa, solo en el historial
+                const obsElement = document.getElementById('ipnObservations');
+                if (obsElement) {
+                    obsElement.style.display = 'none';
+                }
+            }
+
+            // Mini-historial integrado removido; el Historial completo está en Backend/Historial.html
+
+            // Manejar cambio de fecha y días
+            document.getElementById('requestDate').addEventListener('change', function () {
+                updateEmployeeInfo();
+            });
+
+            document.getElementById('daysRequested').addEventListener('change', function () {
+                updateEmployeeInfo();
+                // Actualizar previsualización si está visible
+                if (document.getElementById('previewModal').style.display === 'flex') {
+                    updatePreview();
+                }
+            });
+
+            // Manejar previsualización de solicitud
+            document.getElementById('previewBtn').addEventListener('click', function () {
+                const selectedEmployee = document.querySelector('.employee-item.selected');
+                if (!selectedEmployee) {
+                    showToast('Por favor, selecciona un empleado antes de previsualizar.', 'warning');
+                    return;
+                }
+
+                const requestDate = document.getElementById('requestDate').value;
+                const daysRequested = parseInt(document.getElementById('daysRequested').value || '1', 10);
+
+                // Validar que se haya seleccionado una fecha
+                if (!requestDate) {
+                    showToast('Por favor, selecciona una fecha para la solicitud.', 'warning');
+                    return;
+                }
+
+                // Validar que se hayan seleccionado todas las fechas necesarias
+                if (daysRequested > 1 && selectedDates.length < daysRequested) {
+                    showToast(`Por favor, selecciona ${daysRequested} días en el calendario. Actualmente has seleccionado ${selectedDates.length}.`, 'warning');
+                    return;
+                }
+
+                updatePreview();
+
+                // Mostrar el modal de previsualización
+                document.getElementById('previewModal').style.display = 'flex';
+            });
+
+            // Manejar cierre de previsualización
+            document.getElementById('closePreview').addEventListener('click', function () {
+                document.getElementById('previewModal').style.display = 'none';
+            });
+
+            // Cerrar modal con el botón X
+            document.getElementById('closePreviewModal').addEventListener('click', function () {
+                document.getElementById('previewModal').style.display = 'none';
+            });
+
+            // Cerrar modal al hacer clic fuera
+            document.getElementById('previewModal').addEventListener('click', function (e) {
+                if (e.target === this) {
+                    this.style.display = 'none';
+                }
+            });
+
+            // Cerrar modal de éxito
+            document.getElementById('closeSuccessModal').addEventListener('click', function () {
+                document.getElementById('successModal').style.display = 'none';
+            });
+
+            // Cerrar modal de éxito al hacer clic fuera
+            document.getElementById('successModal').addEventListener('click', function (e) {
+                if (e.target === this) {
+                    this.style.display = 'none';
+                }
+            });
+
+            // Función para mostrar notificaciones toast
+            function showToast(message, type = 'info') {
+                const toast = document.getElementById('toast');
+                if (!toast) return;
+
+                toast.textContent = message;
+                // Eliminar estilo inline que podría estar ocultando el toast
+                toast.style.display = '';
+                toast.className = `toast show ${type}`;
+
+                // Forzar el display para asegurar que se muestre
+                setTimeout(() => {
+                    toast.style.display = 'flex';
+                }, 10);
+
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    // Asegurar que se oculte completamente después de la animación
+                    setTimeout(() => {
+                        if (!toast.classList.contains('show')) {
+                            toast.style.display = 'none';
+                        }
+                    }, 300);
+                }, 4000);
+            }
+
+            // Generar PDF con jsPDF
+            document.getElementById('generatePDFBtn').addEventListener('click', async function () {
+                const previewDocument = document.querySelector('.preview-document');
+                if (!previewDocument) return;
+
+                // Mostrar indicador de carga
+                const btn = this;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando PDF...';
+                btn.disabled = true;
+
+                try {
+                    // Usar html2canvas para capturar el contenido
+                    const canvas = await html2canvas(previewDocument, {
+                        scale: 2,
+                        useCORS: true,
+                        logging: false,
+                        backgroundColor: '#ffffff',
+                        width: previewDocument.scrollWidth,
+                        height: previewDocument.scrollHeight,
+                        letterRendering: true,
+                        allowTaint: false,
+                        removeContainer: false,
+                        onclone: function (clonedDoc) {
+                            // Asegurar que los estilos se apliquen correctamente en el clon
+                            const clonedElement = clonedDoc.querySelector('.preview-document');
+                            if (clonedElement) {
+                                clonedElement.style.transform = 'none';
+                                clonedElement.style.position = 'relative';
+                            }
+                            // Forzar que los estilos de subrayado se apliquen correctamente (excepto en .ipn-line-extend)
+                            const strongElements = clonedDoc.querySelectorAll('.ipn-content-box strong');
+                            strongElements.forEach(el => {
+                                // Solo aplicar subrayado si no está dentro de .ipn-line-extend
+                                if (!el.closest('.ipn-line-extend')) {
+                                    el.style.textDecoration = 'underline';
+                                    el.style.textUnderlineOffset = '3px';
+                                    el.style.textDecorationThickness = '1px';
+                                }
+                            });
+                            // Forzar que los contenedores de línea extendida se muestren correctamente
+                            const lineExtends = clonedDoc.querySelectorAll('.ipn-line-extend');
+                            lineExtends.forEach(el => {
+                                el.style.display = 'flex';
+                                el.style.alignItems = 'baseline';
+                                el.style.position = 'relative';
+                                el.style.width = '100%';
+                                // Asegurar que el ::after se renderice correctamente
+                                const strongEls = el.querySelectorAll('strong');
+                                strongEls.forEach(strong => {
+                                    strong.style.position = 'relative';
+                                    strong.style.textDecoration = 'none';
+                                });
+                            });
+                        }
+                    });
+
+                    // Crear PDF en formato A5 horizontal (210mm x 148mm)
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF({
+                        orientation: 'landscape',
+                        unit: 'mm',
+                        format: 'a5',
+                        compress: true
+                    });
+
+                    // Usar JPEG con compresión para reducir el tamaño del archivo
+                    const imgData = canvas.toDataURL('image/jpeg', 0.85);
+                    const imgWidth = 210; // Ancho A5 horizontal en mm
+                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+                    // Calcular si necesita múltiples páginas
+                    const pageHeight = 148; // Alto A5 horizontal en mm
+                    let heightLeft = imgHeight;
+                    let position = 0;
+
+                    // Agregar primera página
+                    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+
+                    // Agregar páginas adicionales si es necesario
+                    while (heightLeft > 0) {
+                        position = heightLeft - imgHeight;
+                        pdf.addPage();
+                        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+                        heightLeft -= pageHeight;
+                    }
+
+                    // Descargar el PDF
+                    pdf.save('solicitud-permiso-economico.pdf');
+                } catch (error) {
+                    console.error('Error al generar PDF:', error);
+                    showToast('Error al generar el PDF. Por favor, intenta de nuevo.', 'error');
+                } finally {
+                    // Restaurar botón
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            });
+
+            // Función para validar solicitud antes de guardar
+            // Ahora SOLO usa la tabla employees (initial_days_month/initial_days_year)
+            async function validateRequest(employeeId, dateRequested, daysRequested) {
+                try {
+                    // Obtener información del empleado (incluye días iniciales que ya tienen las solicitudes aprobadas)
+                    const empRes = await fetch('server/php-api/employees.php');
+                    if (!empRes.ok) throw new Error('Error al obtener empleados');
+                    const employees = await empRes.json();
+                    const employee = employees.find(e => e.id == employeeId);
+
+                    if (!employee) {
+                        return {
+                            valid: false,
+                            message: 'Empleado no encontrado.'
+                        };
+                    }
+
+                    // Obtener todas las solicitudes del empleado para verificar duplicados
+                    const res = await fetch(`server/php-api/requests.php?employee_id=${employeeId}`);
+                    if (!res.ok) throw new Error('Error al obtener solicitudes');
+                    const requests = await res.json();
+
+                    // Parsear la fecha manualmente para evitar problemas de zona horaria
+                    const [yearStr, monthStr, dayStr] = dateRequested.split('-');
+                    const requestDate = new Date(parseInt(yearStr), parseInt(monthStr) - 1, parseInt(dayStr));
+                    const requestYear = requestDate.getFullYear();
+                    const requestMonth = requestDate.getMonth() + 1;
+                    const requestDateStr = dateRequested; // Formato YYYY-MM-DD
+                    const currentYear = new Date().getFullYear();
+                    const currentMonth = new Date().getMonth() + 1;
+
+                    // Obtener días usados directamente de la tabla employees
+                    const daysUsedMonth = employee.days_used_month || 0;
+                    const daysUsedYear = employee.days_used_year || 0;
+
+                    // Validación 1: Verificar si ya existe una solicitud para ese día
+                    const sameDayRequest = requests.find(r => r.date_requested === requestDateStr);
+                    if (sameDayRequest) {
+                        return {
+                            valid: false,
+                            message: 'Ya existe una solicitud para este empleado en la fecha seleccionada.'
+                        };
+                    }
+
+                    // Validación 2: Verificar límite del mes (solo si es el mes actual)
+                    if (requestYear === currentYear && requestMonth === currentMonth) {
+                        if (daysUsedMonth + daysRequested > 3) {
+                            return {
+                                valid: false,
+                                message: `El empleado tiene ${daysUsedMonth} días usados en este mes. No puede solicitar ${daysRequested} días más (límite total: 3 días).`
+                            };
+                        }
+                    } else {
+                        // Para meses diferentes al actual, contar solicitudes del mes
+                        const monthRequests = requests.filter(r => {
+                            // Parsear la fecha manualmente para evitar problemas de zona horaria
+                            const [rYearStr, rMonthStr, rDayStr] = r.date_requested.split('-');
+                            const rDate = new Date(parseInt(rYearStr), parseInt(rMonthStr) - 1, parseInt(rDayStr));
+                            return rDate.getFullYear() === requestYear && (rDate.getMonth() + 1) === requestMonth;
+                        });
+                        const monthDaysTotal = monthRequests.reduce((sum, r) => sum + r.days, 0);
+                        if (monthDaysTotal + daysRequested > 3) {
+                            return {
+                                valid: false,
+                                message: `El empleado ya tiene ${monthDaysTotal} días solicitados en ese mes. No puede solicitar ${daysRequested} días más (límite: 3 días).`
+                            };
+                        }
+                    }
+
+                    // Validación 3: Verificar límite del año (solo si es el año actual)
+                    if (requestYear === currentYear) {
+                        if (daysUsedYear + daysRequested > 12) {
+                            return {
+                                valid: false,
+                                message: `El empleado tiene ${daysUsedYear} días usados en este año. No puede solicitar ${daysRequested} días más (límite total: 12 días).`
+                            };
+                        }
+                    } else {
+                        // Para años diferentes al actual, contar solicitudes del año
+                        const yearRequests = requests.filter(r => {
+                            // Parsear la fecha manualmente para evitar problemas de zona horaria
+                            const [rYearStr, rMonthStr, rDayStr] = r.date_requested.split('-');
+                            const rDate = new Date(parseInt(rYearStr), parseInt(rMonthStr) - 1, parseInt(rDayStr));
+                            return rDate.getFullYear() === requestYear;
+                        });
+                        const yearDaysTotal = yearRequests.reduce((sum, r) => sum + r.days, 0);
+                        if (yearDaysTotal + daysRequested > 12) {
+                            return {
+                                valid: false,
+                                message: `El empleado ya tiene ${yearDaysTotal} días solicitados en ese año. No puede solicitar ${daysRequested} días más (límite: 12 días).`
+                            };
+                        }
+                    }
+
+                    return { valid: true };
+                } catch (err) {
+                    return {
+                        valid: false,
+                        message: 'Error al validar la solicitud: ' + err.message
+                    };
+                }
+            }
+
+            // Guardar registro (enviar POST a la API)
+            document.getElementById('saveRecordBtn').addEventListener('click', async function () {
+                const selectedEmployee = document.querySelector('.employee-item.selected');
+                if (!selectedEmployee) {
+                    showToast('Por favor, selecciona un empleado antes de guardar.', 'warning');
+                    return;
+                }
+
+                const employeeIdMatch = selectedEmployee.querySelector('.employee-details')?.textContent.match(/ID: (\d+)/);
+                const employeeId = employeeIdMatch ? employeeIdMatch[1] : selectedEmployee.dataset.id;
+                const dateRequested = document.getElementById('requestDate').value;
+                const daysRequested = parseInt(document.getElementById('daysRequested').value) || 1;
+
+                if (!dateRequested) {
+                    showToast('Por favor, selecciona una fecha para la solicitud.', 'warning');
+                    return;
+                }
+
+                // Validar antes de guardar
+                const validation = await validateRequest(employeeId, dateRequested, daysRequested);
+                if (!validation.valid) {
+                    showToast(validation.message, 'error');
+                    return;
+                }
+
+                const payload = {
+                    employee_id: parseInt(employeeId, 10),
+                    date_requested: dateRequested,
+                    days: daysRequested,
+                    notes: (document.getElementById('observations')?.value || '')
+                };
+
+                try {
+                    const res = await fetch('server/php-api/create_request.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!res.ok) {
+                        const errorData = await res.json().catch(() => ({ error: 'Error en la petición' }));
+                        throw new Error(errorData.error || 'Error en la petición');
+                    }
+                    const json = await res.json();
+                    // Mostrar feedback con modal bonito
+                    document.getElementById('successModal').style.display = 'flex';
+                    // NO cerrar el modal de preview - solo mostrar el mensaje de éxito
+                    // Recargar empleados para actualizar contadores (esto mantendrá la selección si el empleado sigue existiendo)
+                    await loadEmployees();
+
+                    // Actualizar la información del empleado después de recargar (para mantener los contadores actualizados)
+                    updateEmployeeInfo();
+                } catch (err) {
+                    console.error(err);
+                    showToast('No se pudo guardar la solicitud: ' + err.message, 'error');
+                }
+            });
+
+            // Búsqueda de empleados y filtro por departamento
+            document.getElementById('searchEmployee').addEventListener('input', applyEmployeeFilters);
+            document.getElementById('departmentFilter').addEventListener('change', applyEmployeeFilters);
+
+            // Manejar botón de historial - pasar employeeId si hay uno seleccionado
+            document.getElementById('historyBtnLeft').addEventListener('click', function () {
+                const selectedEmployee = document.querySelector('.employee-item.selected');
+                let url = 'Backend/Historial.html';
+
+                if (selectedEmployee) {
+                    const employeeId = selectedEmployee.dataset.id;
+                    if (employeeId) {
+                        url += '?employeeId=' + encodeURIComponent(employeeId);
+                    }
+                }
+
+                window.location.href = url;
+            });
+        });
+    </script>
+</body>
+
+</html>

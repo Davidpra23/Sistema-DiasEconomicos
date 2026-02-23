@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gestión de Empleados</title>
+  <link rel="stylesheet" href="../Frontend/css/Estilosgestion.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+  <header>
+    <span><i class="fas fa-users"></i> Gestión de Empleados</span>
+    <button onclick="window.location.href='../index.html'">
+      <i class="fas fa-arrow-left"></i> Regresar
+    </button>
+  </header>
+
+  <div class="container">
+    <div class="main-content">
+      <div class="content-header">
+        <h2><i class="fas fa-users"></i> Empleados</h2>
+        <div class="header-actions">
+          <button class="btn-secondary" id="manageDepartmentsBtn">
+            <i class="fas fa-building"></i> Gestionar Departamentos
+          </button>
+          <button class="btn-primary" id="newEmployeeBtn">
+            <i class="fas fa-plus"></i> Nuevo Empleado
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabla de empleados -->
+      <div class="table-container">
+        <table class="employees-table" id="employeesTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Departamento</th>
+              <th>Días Mes</th>
+              <th>Días Año</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="employeesTableBody">
+            <!-- Se carga dinámicamente -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para crear/editar empleado -->
+  <div class="modal" id="employeeModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalEmployeeTitle">Nuevo Empleado</h3>
+        <button class="close-modal-btn" id="closeEmployeeModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="employeeForm">
+          <input type="hidden" id="employeeId">
+
+          <div class="form-group">
+            <label for="employeeName">Nombre Completo *</label>
+            <input type="text" id="employeeName" required placeholder="Ej: Juan Pérez Martínez">
+          </div>
+
+          <div class="form-group">
+            <label for="employeeDepartment">Departamento</label>
+            <div class="select-wrapper">
+              <select id="employeeDepartment">
+                <option value="">Sin departamento</option>
+                <!-- Se carga dinámicamente -->
+              </select>
+              <button type="button" class="btn-icon" id="refreshDepartmentsBtn" title="Actualizar lista">
+                <i class="fas fa-sync-alt"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="initialDaysMonth">Días iniciales del mes</label>
+            <input type="number" id="initialDaysMonth" min="0" max="3" value="0" placeholder="0">
+            <small>Días económicos ya usados en el mes actual (0-3)</small>
+          </div>
+
+          <div class="form-group">
+            <label for="initialDaysYear">Días iniciales del año</label>
+            <input type="number" id="initialDaysYear" min="0" max="12" value="0" placeholder="0">
+            <small>Días económicos ya usados en el año actual (0-12)</small>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-cancel" id="cancelEmployeeBtn">Cancelar</button>
+            <button type="submit" class="btn-submit" id="saveEmployeeBtn">Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para gestionar departamentos -->
+  <div class="modal" id="departmentsModal">
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h3><i class="fas fa-building"></i> Gestionar Departamentos</h3>
+        <button class="close-modal-btn" id="closeDepartmentsModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="departments-header">
+          <button class="btn-primary" id="newDepartmentBtn">
+            <i class="fas fa-plus"></i> Nuevo Departamento
+          </button>
+        </div>
+
+        <div class="table-container">
+          <table class="departments-table" id="departmentsTable">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="departmentsTableBody">
+              <!-- Se carga dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para crear/editar departamento -->
+  <div class="modal" id="departmentFormModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalDepartmentTitle">Nuevo Departamento</h3>
+        <button class="close-modal-btn" id="closeDepartmentFormModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="departmentForm">
+          <input type="hidden" id="departmentId">
+
+          <div class="form-group">
+            <label for="departmentName">Nombre del Departamento *</label>
+            <input type="text" id="departmentName" required placeholder="Ej: Recursos Humanos">
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-cancel" id="cancelDepartmentBtn">Cancelar</button>
+            <button type="submit" class="btn-submit" id="saveDepartmentBtn">Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast para mensajes -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Modal de confirmación -->
+  <div class="modal" id="confirmModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="confirmModalTitle">Confirmar acción</h3>
+        <button class="close-modal-btn" id="closeConfirmModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="confirmModalMessage">¿Está seguro de realizar esta acción?</p>
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" id="cancelConfirmBtn">Cancelar</button>
+          <button type="button" class="btn-danger" id="confirmActionBtn">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Variables globales
+    let employees = [];
+    let departments = [];
+    let editingEmployeeId = null;
+    let editingDepartmentId = null;
+
+    // Elementos DOM
+    const employeeModal = document.getElementById('employeeModal');
+    const departmentsModal = document.getElementById('departmentsModal');
+    const departmentFormModal = document.getElementById('departmentFormModal');
+    const employeeForm = document.getElementById('employeeForm');
+    const departmentForm = document.getElementById('departmentForm');
+    const toast = document.getElementById('toast');
+
+    // Funciones de utilidad
+    function showToast(message, type = 'info') {
+      toast.textContent = message;
+      toast.className = `toast show ${type}`;
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    // Cargar empleados
+    async function loadEmployees() {
+      try {
+        const res = await fetch('../server/php-api/employees.php');
+        if (!res.ok) throw new Error('Error al cargar empleados');
+        employees = await res.json();
+        renderEmployees();
+      } catch (err) {
+        showToast('Error al cargar empleados: ' + err.message, 'error');
+      }
+    }
+
+    // Cargar departamentos
+    async function loadDepartments() {
+      try {
+        const res = await fetch('../server/php-api/departments.php');
+        if (!res.ok) throw new Error('Error al cargar departamentos');
+        departments = await res.json();
+        renderDepartmentSelect();
+        renderDepartmentsTable();
+      } catch (err) {
+        showToast('Error al cargar departamentos: ' + err.message, 'error');
+      }
+    }
+
+    // Renderizar tabla de empleados
+    function renderEmployees() {
+      const tbody = document.getElementById('employeesTableBody');
+      tbody.innerHTML = '';
+
+      if (employees.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px;">No hay empleados registrados</td></tr>';
+        return;
+      }
+
+      employees.forEach(emp => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+      <td>${emp.id}</td>
+      <td>${emp.name}</td>
+      <td>${emp.department || 'Sin departamento'}</td>
+      <td>${emp.initial_days_month || 0}</td>
+      <td>${emp.initial_days_year || 0}</td>
+      <td class="actions-cell">
+        <div class="actions-wrapper">
+          <button class="btn-icon btn-edit" onclick="editEmployee(${emp.id})" title="Editar">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="btn-icon btn-delete" onclick="deleteEmployee(${emp.id})" title="Eliminar">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </td>
+    `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Renderizar select de departamentos
+    function renderDepartmentSelect() {
+      const select = document.getElementById('employeeDepartment');
+      const currentValue = select.value;
+
+      select.innerHTML = '<option value="">Sin departamento</option>';
+      departments.forEach(dept => {
+        const option = document.createElement('option');
+        option.value = dept.id;
+        option.textContent = dept.name;
+        select.appendChild(option);
+      });
+
+      if (currentValue) {
+        select.value = currentValue;
+      }
+    }
+
+    // Renderizar tabla de departamentos
+    function renderDepartmentsTable() {
+      const tbody = document.getElementById('departmentsTableBody');
+      tbody.innerHTML = '';
+
+      if (departments.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px;">No hay departamentos registrados</td></tr>';
+        return;
+      }
+
+      departments.forEach(dept => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+      <td>${dept.id}</td>
+      <td>${dept.name}</td>
+      <td class="actions-cell">
+        <div class="actions-wrapper">
+          <button class="btn-icon btn-edit" onclick="editDepartment(${dept.id})" title="Editar">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="btn-icon btn-delete" onclick="deleteDepartment(${dept.id})" title="Eliminar">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </td>
+    `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Abrir modal de nuevo empleado
+    document.getElementById('newEmployeeBtn').addEventListener('click', () => {
+      editingEmployeeId = null;
+      document.getElementById('modalEmployeeTitle').textContent = 'Nuevo Empleado';
+      employeeForm.reset();
+      document.getElementById('employeeId').value = '';
+      document.getElementById('initialDaysMonth').value = '0';
+      document.getElementById('initialDaysYear').value = '0';
+      employeeModal.style.display = 'flex';
+    });
+
+    // Abrir modal de editar empleado
+    function editEmployee(id) {
+      const emp = employees.find(e => e.id == id);
+      if (!emp) return;
+
+      editingEmployeeId = id;
+      document.getElementById('modalEmployeeTitle').textContent = 'Editar Empleado';
+      document.getElementById('employeeId').value = emp.id;
+      document.getElementById('employeeName').value = emp.name;
+      document.getElementById('employeeDepartment').value = emp.department_id || '';
+      document.getElementById('initialDaysMonth').value = emp.initial_days_month || 0;
+      document.getElementById('initialDaysYear').value = emp.initial_days_year || 0;
+      employeeModal.style.display = 'flex';
+    }
+
+    // Guardar empleado
+    employeeForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const data = {
+        name: document.getElementById('employeeName').value.trim(),
+        department_id: document.getElementById('employeeDepartment').value || null,
+        initial_days_month: parseInt(document.getElementById('initialDaysMonth').value) || 0,
+        initial_days_year: parseInt(document.getElementById('initialDaysYear').value) || 0
+      };
+
+      try {
+        const url = editingEmployeeId
+          ? `../server/php-api/employees.php?id=${editingEmployeeId}`
+          : '../server/php-api/employees.php';
+
+        const method = editingEmployeeId ? 'PUT' : 'POST';
+
+        const res = await fetch(url, {
+          method: method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        if (!res.ok) {
+          const error = await res.json();
+          throw new Error(error.error || 'Error al guardar empleado');
+        }
+
+        showToast(editingEmployeeId ? 'Empleado actualizado correctamente' : 'Empleado creado correctamente', 'success');
+        employeeModal.style.display = 'none';
+        await loadEmployees();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+
+    // Eliminar empleado
+    async function deleteEmployee(id) {
+      const emp = employees.find(e => e.id == id);
+      if (!emp) return;
+
+      // Mostrar modal de confirmación
+      const confirmed = await showConfirmModal(
+        'Eliminar empleado',
+        `¿Está seguro de eliminar a ${emp.name}? Esta acción no se puede deshacer.`
+      );
+
+      if (!confirmed) return;
+
+      try {
+        const res = await fetch(`../server/php-api/employees.php?id=${id}`, {
+          method: 'DELETE'
+        });
+
+        if (!res.ok) {
+          const error = await res.json();
+          throw new Error(error.error || 'Error al eliminar empleado');
+        }
+
+        showToast('Empleado eliminado correctamente', 'success');
+        await loadEmployees();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // Abrir modal de departamentos
+    document.getElementById('manageDepartmentsBtn').addEventListener('click', async () => {
+      await loadDepartments();
+      departmentsModal.style.display = 'flex';
+    });
+
+    // Abrir modal de nuevo departamento
+    document.getElementById('newDepartmentBtn').addEventListener('click', () => {
+      editingDepartmentId = null;
+      document.getElementById('modalDepartmentTitle').textContent = 'Nuevo Departamento';
+      departmentForm.reset();
+      document.getElementById('departmentId').value = '';
+      departmentFormModal.style.display = 'flex';
+    });
+
+    // Editar departamento
+    function editDepartment(id) {
+      const dept = departments.find(d => d.id == id);
+      if (!dept) return;
+
+      editingDepartmentId = id;
+      document.getElementById('modalDepartmentTitle').textContent = 'Editar Departamento';
+      document.getElementById('departmentId').value = dept.id;
+      document.getElementById('departmentName').value = dept.name;
+      departmentFormModal.style.display = 'flex';
+    }
+
+    // Guardar departamento
+    departmentForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const data = {
+        name: document.getElementById('departmentName').value.trim()
+      };
+
+      try {
+        const url = editingDepartmentId
+          ? `../server/php-api/departments.php?id=${editingDepartmentId}`
+          : '../server/php-api/departments.php';
+
+        const method = editingDepartmentId ? 'PUT' : 'POST';
+
+        const res = await fetch(url, {
+          method: method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        if (!res.ok) {
+          const error = await res.json();
+          throw new Error(error.error || 'Error al guardar departamento');
+        }
+
+        showToast(editingDepartmentId ? 'Departamento actualizado correctamente' : 'Departamento creado correctamente', 'success');
+        departmentFormModal.style.display = 'none';
+        await loadDepartments();
+        // También actualizar el select de empleados si está abierto
+        if (employeeModal.style.display === 'flex') {
+          renderDepartmentSelect();
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+
+    // Eliminar departamento
+    async function deleteDepartment(id) {
+      const dept = departments.find(d => d.id == id);
+      if (!dept) return;
+
+      // Mostrar modal de confirmación
+      const confirmed = await showConfirmModal(
+        'Eliminar departamento',
+        `¿Está seguro de eliminar el departamento "${dept.name}"? Esta acción no se puede deshacer.`
+      );
+
+      if (!confirmed) return;
+
+      try {
+        const res = await fetch(`../server/php-api/departments.php?id=${id}`, {
+          method: 'DELETE'
+        });
+
+        if (!res.ok) {
+          const error = await res.json();
+          throw new Error(error.error || 'Error al eliminar departamento');
+        }
+
+        showToast('Departamento eliminado correctamente', 'success');
+        await loadDepartments();
+        // También actualizar el select de empleados si está abierto
+        if (employeeModal.style.display === 'flex') {
+          renderDepartmentSelect();
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // Actualizar lista de departamentos
+    document.getElementById('refreshDepartmentsBtn').addEventListener('click', async () => {
+      await loadDepartments();
+      showToast('Lista de departamentos actualizada', 'success');
+    });
+
+    // Función para mostrar modal de confirmación
+    function showConfirmModal(title, message) {
+      return new Promise((resolve) => {
+        const modal = document.getElementById('confirmModal');
+        const titleEl = document.getElementById('confirmModalTitle');
+        const messageEl = document.getElementById('confirmModalMessage');
+        const confirmBtn = document.getElementById('confirmActionBtn');
+        const cancelBtn = document.getElementById('cancelConfirmBtn');
+        const closeBtn = document.getElementById('closeConfirmModal');
+
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+        modal.style.display = 'flex';
+
+        const handleConfirm = () => {
+          modal.style.display = 'none';
+          resolve(true);
+          cleanup();
+        };
+
+        const handleCancel = () => {
+          modal.style.display = 'none';
+          resolve(false);
+          cleanup();
+        };
+
+        const cleanup = () => {
+          confirmBtn.removeEventListener('click', handleConfirm);
+          cancelBtn.removeEventListener('click', handleCancel);
+          closeBtn.removeEventListener('click', handleCancel);
+          modal.removeEventListener('click', handleOutsideClick);
+        };
+
+        const handleOutsideClick = (e) => {
+          if (e.target === modal) {
+            handleCancel();
+          }
+        };
+
+        confirmBtn.addEventListener('click', handleConfirm);
+        cancelBtn.addEventListener('click', handleCancel);
+        closeBtn.addEventListener('click', handleCancel);
+        modal.addEventListener('click', handleOutsideClick);
+      });
+    }
+
+    // Cerrar modales
+    document.getElementById('closeEmployeeModal').addEventListener('click', () => {
+      employeeModal.style.display = 'none';
+    });
+
+    document.getElementById('closeDepartmentsModal').addEventListener('click', () => {
+      departmentsModal.style.display = 'none';
+    });
+
+    document.getElementById('closeDepartmentFormModal').addEventListener('click', () => {
+      departmentFormModal.style.display = 'none';
+    });
+
+    document.getElementById('cancelEmployeeBtn').addEventListener('click', () => {
+      employeeModal.style.display = 'none';
+    });
+
+    document.getElementById('cancelDepartmentBtn').addEventListener('click', () => {
+      departmentFormModal.style.display = 'none';
+    });
+
+    // Cerrar modales al hacer clic fuera
+    [employeeModal, departmentsModal, departmentFormModal].forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+    });
+
+    // Inicializar
+    loadEmployees();
+    loadDepartments();
+  </script>
+</body>
+
+</html>
