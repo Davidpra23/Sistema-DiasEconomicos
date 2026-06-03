@@ -140,10 +140,34 @@ try {
         $check->execute([$id]);
         $count = $check->fetchColumn();
 
+        $force = isset($_GET['force']) && ($_GET['force'] === 'true' || $_GET['force'] === '1');
+
         if ($count > 0) {
-            http_response_code(400);
-            echo json_encode(['error' => 'No se puede eliminar el empleado porque tiene solicitudes asociadas']);
-            exit;
+            if (!$force) {
+                http_response_code(400);
+                echo json_encode([
+                    'error' => 'No se puede eliminar el empleado porque tiene solicitudes asociadas',
+                    'has_requests' => true
+                ]);
+                exit;
+            }
+
+            // Si force es true, eliminamos en transacción
+            $pdo->beginTransaction();
+            try {
+                $delRequests = $pdo->prepare('DELETE FROM requests WHERE employee_id = ?');
+                $delRequests->execute([$id]);
+
+                $stmt = $pdo->prepare('DELETE FROM employees WHERE id = ?');
+                $stmt->execute([$id]);
+
+                $pdo->commit();
+                echo json_encode(['success' => true]);
+                exit;
+            } catch (Exception $e) {
+                $pdo->rollBack();
+                throw $e;
+            }
         }
 
         $stmt = $pdo->prepare('DELETE FROM employees WHERE id = ?');

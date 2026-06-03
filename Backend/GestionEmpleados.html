@@ -381,7 +381,7 @@
       // Mostrar modal de confirmación
       const confirmed = await showConfirmModal(
         'Eliminar empleado',
-        `¿Está seguro de eliminar a ${emp.name}? Esta acción no se puede deshacer.`
+        `¿Está seguro de eliminar a: ${emp.name}? Esta acción no se puede deshacer.`
       );
 
       if (!confirmed) return;
@@ -393,6 +393,28 @@
 
         if (!res.ok) {
           const error = await res.json();
+          if (error.has_requests) {
+            // Segunda confirmación si tiene solicitudes asociadas
+            const confirmDeleteAssociated = await showConfirmModal(
+              'Confirmar eliminación',
+              'Este empleado tiene solicitudes asociadas.',
+              'Confirmar la eliminación',
+              'Cancelar'
+            );
+            
+            if (confirmDeleteAssociated) {
+              const resForce = await fetch(`../server/php-api/employees.php?id=${id}&force=true`, {
+                method: 'DELETE'
+              });
+              if (!resForce.ok) {
+                const errorForce = await resForce.json();
+                throw new Error(errorForce.error || 'Error al eliminar empleado');
+              }
+              showToast('Empleado y sus solicitudes eliminados correctamente', 'success');
+              await loadEmployees();
+            }
+            return;
+          }
           throw new Error(error.error || 'Error al eliminar empleado');
         }
 
@@ -509,7 +531,7 @@
     });
 
     // Función para mostrar modal de confirmación
-    function showConfirmModal(title, message) {
+    function showConfirmModal(title, message, confirmText = 'Confirmar', cancelText = 'Cancelar') {
       return new Promise((resolve) => {
         const modal = document.getElementById('confirmModal');
         const titleEl = document.getElementById('confirmModalTitle');
@@ -520,6 +542,8 @@
 
         titleEl.textContent = title;
         messageEl.textContent = message;
+        confirmBtn.textContent = confirmText;
+        cancelBtn.textContent = cancelText;
         modal.style.display = 'flex';
 
         const handleConfirm = () => {

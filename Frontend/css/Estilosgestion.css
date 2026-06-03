@@ -99,7 +99,8 @@ header button:hover {
 .btn-primary,
 .btn-secondary,
 .btn-submit,
-.btn-cancel {
+.btn-cancel,
+.btn-danger {
     padding: 10px 20px;
     border: none;
     border-radius: 6px;

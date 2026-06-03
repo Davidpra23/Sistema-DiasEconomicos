@@ -227,7 +227,7 @@
                             </div>
 
                             <div class="ipn-received-dept">
-                                <div class="ipn-received-label">RECIBIO</div>
+                                <div class="ipn-received-label">RECIBIÓ</div>
                                 <div class="ipn-dept-line-container">
                                     <div class="ipn-signature-line-dept"></div>
                                     <div class="ipn-dept-days-row">
@@ -326,7 +326,14 @@
                     console.error('Error:', err);
                 }
 
-                const firstDay = new Date(year, month, 1).getDay() || 1;
+                const firstDay = new Date(year, month, 1).getDay();
+                // En JavaScript, getDay() devuelve 0 para Domingo, 1 para Lunes, etc.
+                // Dado que nuestras columnas son Lunes (0), Martes (1)... Domingo (6),
+                // la cantidad de días del mes anterior a mostrar al inicio es:
+                // Domingo (0) -> 6 días previos
+                // Lunes (1) -> 0 días previos
+                // Martes (2) -> 1 día previo, etc.
+                const prevDaysCount = firstDay === 0 ? 6 : firstDay - 1;
                 const daysInMonth = new Date(year, month + 1, 0).getDate();
                 const daysInPrevMonth = new Date(year, month, 0).getDate();
 
@@ -343,7 +350,7 @@
                 const isCurrentMonth = month === currentMonth && year === currentYear;
 
                 // Días mes anterior
-                for (let i = firstDay - 1; i >= 0; i--) {
+                for (let i = prevDaysCount - 1; i >= 0; i--) {
                     const day = daysInPrevMonth - i;
                     const el = document.createElement('div');
                     el.textContent = day;
